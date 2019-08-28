@@ -1,0 +1,1440 @@
+---
+title: "Bayesian Statistics Notes"
+author: "Shubhi Sharma"
+output: pdf_document
+editor_options: 
+  chunk_output_type: inline
+toc: true
+header-includes: 
+- \usepackage{placeins}
+- \usepackage{color}
+- \usepackage{amsmath}
+in_header: custom2.tex
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+\newpage 
+
+#1. Probability review
+
+##1.1 Marginal probability 
+
+##1.2 Conditional probability 
+
+##1.3 Discrete probability distributions 
+
+*Note on discrete random variables*
+A random variable Y is said to be discrete if it can assume only a finite or countably infinte number of distinct values. Y is a random variables and the probability that Y takes on some real value y is denoted by Pr(Y= y). Note that Y is a random variable and y is a fixed quantity. 
+
+For any discrete probability distribution, the following must be true:
+
+1.$0 \le p(y) \le 1$ for all y
+
+2.$\sum\limits_y p(y) = 1$ 
+
+If Y is a discrete random variable with probability distribution p(y) then the **expected value** of Y is defined as 
+
+$$E(Y) = \sum\limits_y yp(y)$$
+Then the **variance** of Y is expressed as 
+
+$$V(Y) = E[(Y- \mu)^2] = \sum\limits_y(y-\mu)^2p(y)$$
+If $E(Y) = \mu$ then the variance of Y can also be expressed as, 
+
+$$V(Y) = E(Y^2) - E(Y)^2$$
+
+### 1.3.1 Binomial
+
+The binomial distribution with parameters n and p is the discrete probability distribution of the number of successes in a sequence of *n independent experinments*, each with a boolean valued outcome (1/0). Failures have the probability of (q = 1-p). A single success/failure experinment is called a Bernoulli trial or experiment and a sequence of outcomes is called a Bernoulli process; for a single trial i.e. n= 1, the binomial is a bernoulli distribution. 
+
+**Usage**: The binomial distribution is frequnelty used to model the number of successes in a sample of size n drawn with replacement from a population of size N. 
+
+**Probability mass function**: In general, if the random variable X follows the binomial distribution with parameters n and p, we write $X \sim Bin(n,p)$. The probabilty of getting k successes in n trials is given by the probabilty mass function: 
+$$f(k,n,p) = Pr(k\mid n, p) = Pr(X =k) = \frac{n!}{k!(n-k)!}p^k(1-p)^{n-k}$$
+
+where, $\frac{n!}{k!(n-k)!}$ is the binomial coefficeint. The formula can be understood as k successes occur with probabiltiy $p^k$ and n-k failures occur with probability (1-p)^{n-k}. 
+
+Note: Relationship beween bernoulli and binomial distributions
+
+The $P(X = x) = p^x(1-p)^{1-x}$. This is called a **Bernoulli trial**. 
+
+For a **Binomial experiment**, we have n trials instead and assume that the trials are independent. If we have x successes, we have n-x failures and the probability of this is $(1-p)^{n-x}$. Therefore to calculate all the ways in which to "order successes amongst available n trials". The Binomial distribtion can be defined as the equation above. 
+
+The expectation for this distribution is $E(X) = np$ and $V(X) = np(1-p)$. 
+
+###1.3.2 Poisson Distribution 
+
+Suppose that X is the number of rare events that occur over time and $\lambda$ is the average value of X. For example, number of accidents in a given time interval. 
+A random variable Y has a poission distribution if and only if 
+
+$$p(y) = \frac{\lambda^x e^{-\lambda}}{x!}, x =0,1,2..., \lambda >0$$
+The poisson distribution is unique becasue the expectation and the variance are equal to the rate. 
+
+i.e. $E(X) = V(X) = \lambda$
+
+The poisson distribution can be derivd as an approximation to the binomial distribution when n is large, p is small and np is not too large and not too small. In this case, $\lambda = np$. 
+
+###1.3.3 Geometric Distribution 
+
+Suppose we have n trials and geometric random variable Y is number of the trial on which the first success occurs. Y is said to have a geometric probability distribution if and only if 
+
+$$p(y) = P(Y = y) = (1-p)^{y-1}p, y= 1,2,3.....n; 0\le p \le 1$$
+$E(X) = \frac{1}{p}$ and $V(X)= \frac{1-p}{p}$
+
+###1.3.4 Negative Binomial Distribution
+
+##1.4 Continuous probability distributions 
+
+*Note on continuous random variables* 
+A continuous random variable Y can take on a continuum of possible values. The random variable Y will always have a distribution function $F(X) = P(Y \le x)$ as well as a density function $f(x)$. 
+
+If $f(x)$ is a probability density function for a continous random variable X, then, 
+1. $f(x) \ge 0$ for all $x, -\infty < x < \infty$
+2. $\int\limits_{-\infty}^{\infty} dx = 1$
+
+Then the expected value of X is defined to be 
+
+$$E(X) = \int\limits_x xf(x) dx$$
+Suppose X has an $E(X) = \mu$, then the variance can be defined as, 
+
+$$V(X) = E[(X- \mu)^2] = \int\limits_x(x - \mu)^2f(x) dx$$
+The variance can also be expressed as
+
+$$V(X) = E(X^2) - E(X)^2$$
+
+###1.4.1 Uniform distribution 
+
+If a < b, X is said to have a uniform probability distribtion on the interval [a,b] if and only if the density function of X is, 
+
+$$
+f(x) = \left\{
+        \begin{array}{ll}
+            \frac{1}{b-a}, & \quad a \leq x \leq b \\
+            0 & \quad \text{otherwise}
+        \end{array}
+    \right.
+$$
+For the uniform distribtion, $E(X) = \frac{b + a}{2}$ and variance $V(X) = \frac{(b-a)^2}{12}$
+
+###1.4.2 Normal distribution
+
+A random variable X has a normal probability distribution if and only if for $\sigma > 0$ abd $-\infty < \mu < \infty$, the density function of X is 
+
+$$f(x) = \frac{1}{\sqrt{2\pi\sigma^2}}e (\frac{-1}{2\sigma^2}(x - \mu)^2), -\infty < x<\infty$$
+The expectation for the normal distribution is $E(X) = \mu$ and variance $V(X) = \sigma^2$. 
+
+###1.4.3 Beta distribution 
+
+A random variable has a beta distribution if and only if the density function of X is described by, 
+
+$$f(x) = \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha)\Gamma(\beta)}x^{\alpha -1}(1-x)^{\beta -1} \quad \alpha>0, \beta > 0$$
+The expectation of the beta is defined as $E[X] = \frac{\alpha}{\alpha + \beta}$ and variance $V[X] = \frac{\alpha\beta}{(\alpha + \beta)^2(\alpha + \beta + 1)}$
+
+###1.4.4 Gamma distribution 
+
+In probability statistics and theory, the gamma distribution is a two parameter distribution in the continuous family of distributions. The exponential distribution is a special case of the gamma. The PDF for the gamma distribution is,  
+
+$$f(x) = \frac{\beta^\alpha}{\Gamma(\alpha)} x^{\alpha - 1}e^{-\beta x}$$
+
+If X follows this distribution, we denote this by $X \sim \text{Gamma}(\alpha, \beta)$. The mean of the gamma distribution is $E[X] = \frac{\alpha}{\beta}$, the mode is described by $\frac{\alpha - 1}{\beta}$ and finally, the variance is given by $Var[X] = \frac{\alpha}{\beta^2}$
+
+
+##1.5 Multivariate distributions 
+
+###1.5.1 Multivariate normal distribution 
+
+###1.5.2 Wishart distribution 
+
+###1.5.3 Dirchlet distribution 
+
+###1.5.4 Multinomial distribution 
+
+##1.6 Bayes theorem 
+
+The foundation for Bayesian inference begins with Baye's rule. The derivation of bayes theorem by considering conditional probability rule, 
+
+$$P(A\mid B) = \frac{P(A,B)}{P(B)}$$
+The multiplicative law of probability rules states 
+
+$$P(A,B) = P(A\mid B) P(B) = P(B\mid A) P(A) $$
+Putting this together we get, 
+$$P(A\mid B) = \frac{P(A,B)}{P(B)} = \frac{P(B\mid A)P(A)}{P(B)}$$
+Which is the Bayes rule
+
+The denominator is the marginalizing constant and can be expanded by the law of multiplicative probability to 
+
+$$P(B) = \int\limits_X P(B\mid A_x)P(A_x)dx$$
+
+\newpage 
+
+#2. Conjugacy 
+
+What is conjugacy?
+
+##2.1 Derivations of common conjugate models
+### 2.1.1 Beta-bernoulli
+
+Suppose
+
+$$
+\begin{aligned}
+X \mid \theta &\sim \text{Bernoulli}(n, \theta) \\
+\theta &\sim \text{Beta}(a, b)
+\end{aligned}
+$$
+
+Likelihood is given by the joint distributions of all values of $X_1 =x_1 .. X_n = x_n$
+
+$$
+\begin{aligned}
+p(x_{1:n}\mid \theta) &= \prod\limits_{i=1}^n\theta^{x_i}(1-\theta)^{1 - x_i} \\
+&=\theta^{\sum\limits x_i}(1- \theta)^{n - \sum\limits x_i}
+\end{aligned}
+$$
+The conjugate prior for the bernoulli is the beta, 
+
+$$p(\theta) = \frac{\Gamma(a + b)}{\Gamma(a)\Gamma(b)}\theta^{a-1}(1-\theta)^{b-1}$$
+
+The posterior distribution for the beta-bernoulli is, 
+
+$$
+\begin{aligned}
+p(\theta\mid x_{1:n}) &\propto  \frac{\Gamma(a + b)}{\Gamma(a)\Gamma(b)}\theta^{a-1}(1-\theta)^{b-1}. \theta^{\sum\limits x_i}(1- \theta)^{n - \sum\limits x_i} \\
+&\propto\theta^{a+ \sum x_i -1} (1-\theta)^{n - \sum x_i + b -1}\\
+&\propto\text{Beta}(a+ \sum x_i, n - \sum x_i + b )
+\end{aligned}
+$$
+
+### 2.1.2 Beta-binomial
+Suppose
+
+$$
+\begin{aligned}
+X \mid \theta &\sim \text{Binomial}(n, \theta) \\
+\theta &\sim \text{Beta}(a, b)
+\end{aligned}
+$$
+Likelihood is given by the joint distributions of all values of $X_1 =x_1 .. X_n = x_n$
+
+$$
+\begin{aligned}
+p(x_{1:n}|\theta) &= \prod\limits_{i=1}^n\theta^{x_i}(1-\theta)^{n - x_i} \\
+&=\theta^{\sum\limits x_i}(1- \theta)^{\sum(n - x_i)}
+\end{aligned}
+$$
+
+The conjugate prior for the bernoulli is the beta, 
+
+$$p(\theta) = \frac{\Gamma(a + b)}{\Gamma(a)\Gamma(b)}\theta^{a-1}(1-\theta)^{b-1}$$
+
+The posterior distribution for the beta-binomial is, 
+
+$$
+\begin{aligned}
+p(\theta|x_{1:n}) &\propto  \frac{\Gamma(a + b)}{\Gamma(a)\Gamma(b)}\theta^{a-1}(1-\theta)^{b-1}. \theta^{\sum\limits x_i}(1- \theta)^{n - \sum\limits x_i} \\
+&\propto\theta^{a+ \sum x_i -1} (1-\theta)^{\sum(n - x_i) + b -1}\\
+&\propto \text{Beta}(a+ \sum x_i,\sum(n - x_i) + b)
+\end{aligned}
+$$
+
+### 2.1.3 Exponential-gamma
+
+
+
+### 2.1.4 Poisson-gamma 
+
+### 2.1.4 Galenshore-Galenshore
+Suppose, 
+
+$$
+\begin{aligned}
+p(x_{1:n}|\theta) &\sim \text{Galenshore}(a, \theta) \\ 
+\theta &\sim \text{Galenshore}(a_0, \theta)
+\end{aligned}
+$$
+
+The likelihood is given by, 
+
+$$
+\begin{aligned}
+p(x_{1:n}) &= \prod_{i=1}^n \frac{2}{\Gamma(a)}\theta^{2a}e^{-\theta^2x_i^2} \\
+&\propto \theta^{2na} e^{-\theta^2\sum\limits_{i=1}^n x_i^2}
+\end{aligned}
+$$
+$$
+\begin{aligned}
+p(\theta \mid x_{1:n}) &\propto \theta^{2a_0 -1}e^{-\theta_0^2 \theta^2}\prod\limits^n_{i=1}\theta^{2a}e^{-\theta^2x_i^2} \\ 
+&\propto \theta^{2a_0 -1} e^{-\theta^{2}_0\theta^2}\theta^{2na} e^{-\theta^2\sum\limits_{i=1}^n x_i^2}\\
+&\propto \theta^{2(na + a_0)-1} e{-\theta^2\left(\theta^2_0 + \sum\limits_{i=1}^n x_i^2\right)}
+\end{aligned}
+$$
+
+The posterior distribution of $\theta$ will be Galenshore$\left(na+a_0, \sqrt{\theta_0^2 + \sum\limits_{i=1}^n y_i^2}\right)$. 
+
+### 2.1.5 Uniform-Pareto
+
+### 2.1.6 Gamma-inverse gamma 
+
+Suppose, 
+$$
+\begin{aligned}
+X|\alpha , \beta &\sim \text{Gamma}(\alpha, \beta), \quad \alpha, \beta \text{ are known} \\
+\beta &\sim \text{IG}(a, b)
+\end{aligned}
+$$
+The posterior distribution is given by 
+
+$$
+\begin{aligned}
+p(\beta|x) &\propto \frac{1}{\Gamma(\alpha)\beta^\alpha}x^{\alpha - 1}e^{\frac{-x}{\beta}} . \frac{b^a}{\Gamma(a)}\beta^{-a-1}e^{\frac{-b}{\beta}}\\
+&\propto \frac{1}{\beta^\alpha}e^{\frac{-x}{\beta}}\beta^{-a-1}e^{\frac{-b}{\beta}}\\
+&= \beta^{-\alpha - a - 1}e^{\frac{-(x+b)}{\beta}}\\
+&\sim IG(\alpha + a, x + b)
+\end{aligned}
+$$
+
+
+### 2.1.7 Normal-uniform
+
+Suppose 
+$$
+\begin{aligned}
+X | \theta &\sim \text{Normal}(\theta, \sigma^2) \\
+\theta &\sim \text{Uniform}(-\infty, \infty)
+\end{aligned}
+$$
+where $\theta \sim \text{Uniform}(-\infty, \infty)$ means that $p(\theta) \propto 1$. 
+
+Likelihood is given by the joint distributions of all values of $X_1 =x_1 .. X_n = x_n$
+
+$$
+\begin{aligned}
+p(x_{1:n}|\theta) &= \prod\limits_i^n\frac{1}{\sqrt{2\pi\sigma^2}}\text{exp}(\frac{-1}{2\sigma^2}(x_i - \theta)^2) \\
+&= \frac{1}{\sqrt{2\pi\sigma^2}}\text{exp}(\frac{-1}{2\sigma^2}\sum(x_i-\theta)^2)
+\end{aligned} 
+$$
+
+The posterior is given by,
+
+$$
+\begin{aligned}
+p(\theta|x_{1:n}) &= \prod\limits_i^n\frac{1}{\sqrt{2\pi\sigma^2}}\text{exp}(\frac{-1}{2\sigma^2}(x_i - \theta)^2).p(\theta) \\
+&= \frac{1}{\sqrt{2\pi\sigma^2}}\text{exp}(\frac{-1}{2\sigma^2}\sum(x_i-\theta)^2).(1)\\
+&= \frac{1}{\sqrt{2\pi\sigma^2}}\text{exp}(\frac{-1}{2\sigma^2}\sum(x_i- \bar x + \bar x -\theta)^2) \quad \text{- adding and multipling } \bar x \\
+&\propto \text{exp}(\frac{-1}{2\sigma^2}\sum(x_i- \bar x )^2) + \text{exp}(\frac{-1}{2\sigma^2}\sum (\bar x -\theta)^2) \text{ - dropping constants}\\
+&= \text{exp}(\frac{-n}{2\sigma^2}(\bar x -\theta)^2)\\
+&= \text{exp}(\frac{-n}{2\sigma^2}(\theta - \bar x)^2) \quad \text{- by symmetry}\\
+&\sim\text{Normal}(\bar x, n^{-1}\sigma^2)
+\end{aligned}
+$$
+
+### 2.1.8 Normal-normal 
+
+###2.1.9 Normal-NormalGamma 
+
+The normal model with unknown mean and unknown variance becomes a three layer hierarchical model with a prior distribution on variance and mean separately. The prior distribution is written as a joint distribution with the distribution of the mean conditioned on the distribution of the gamma. 
+
+$$p(\mu, \lambda^{-1}) = p(\mu \mid \lambda) p (\lambda)$$
+where, 
+$$p(\mu \mid \lambda ) \sim N(\mu \mid m, c\lambda^{-1})$$
+and, 
+$$p(\lambda) = Gamma(\lambda \mid a, b)$$
+
+Therefore, the joint distribution is written as, 
+$$
+\begin{aligned}
+p(\mu, \lambda) &\sim N(\mu \mid m, c\lambda^{-1})Gamma(\lambda\mid a , b) \\
+&= \left(\frac{c\lambda}{2\pi}\right)^{1/2}e\left(\frac{-c\lambda}{2}(m - \mu)^2\right) \frac{b^a}{\Gamma(a)} \lambda^{(a -1)} e^{-b \lambda}\\
+&\propto \lambda^{1/2}e\left(\frac{-\lambda}{2}(cm^2 - 2c\mu m + c\mu^2)\right) \lambda^{(a - 1)} e^{-b \lambda} \\
+&= \lambda^{a - 1/2} e\left(\frac{-\lambda}{2}(cm^2 - 2c\mu m + c\mu^2 + 2b)\right)\\
+\end{aligned}
+$$
+The likelihood is from a normal sampling model and therefore can be written as, 
+
+$$
+\begin{aligned}
+p(x_{1:n} \mid \mu, \lambda) &= \prod^n_{i = 1} \left(\frac{c\lambda}{2\pi}\right)e\left(\frac{-\lambda}{2}(x_i - \mu)^2\right) \\
+&\propto ( c\lambda)^{n/2}e\left(\frac{-\lambda}{2}\sum_i(x_i - \mu)^2\right) \\
+&= (\lambda)^{n/2}e\left(\frac{-\lambda}{2}(\sum_ix_i^2 - 2 \sum_i x_i \mu + n\mu^2)\right)
+\end{aligned}
+$$
+The posterior of this distribution can be derived as, 
+
+$$
+\begin{aligned}
+p(\mu, \lambda \mid x_{i:n}) &\propto p(\mu, \lambda) p(x_{i:n} \mid \mu, \lambda) \\
+&\propto  \lambda^{a - 1/2} e\left(\frac{-\lambda}{2}(cm^2 - 2c\mu m + c\mu^2 + 2b)\right).(\lambda)^{n/2}e\left(\frac{-\lambda}{2}(\sum_ix_i^2 - 2 \sum_i x_i \mu + n\mu^2)\right) \\
+&= \lambda^{a + n/2 - 1/2} e\left(\frac{-\lambda}{2}(c\mu^2 + n\mu^2 -2c\mu m -2\sum_ix_i\mu + cm^2 + 2b + \sum_ix_i^2)\right) \\ 
+&= \lambda^{a + n/2 - 1/2} e\left(\frac{-\lambda}{2}(\mu^2(c + n) -2\mu(cm +\sum_ix_i) + cm^2 + 2b + \sum_ix_i^2)\right) \\ 
+\text{Let, } A &= a+ \frac{n}{2}, C = c+ n, M = \frac{cm + \sum_ix_i}{c + n} \text{ and, } CM^2 + 2B = cm^2 + 2b + \sum_i x_i \\
+&\text{which can be writted as, } B = b + \frac{1}{2}(cm^2 - CM^2 + \sum_ix_i^2)\\
+\text{Therefore,}\\
+p(\mu, \lambda \mid x_{i:n}) &\sim NormalGamma(\mu, \lambda \mid A, B, C, M)
+\end{aligned}
+$$
+
+
+### 2.2.0 Multivariate normal- multivariate normal 
+
+### 2.2.1 Multivariate normal- inverse wishart
+
+### 2.2.2 Multinomial - Dirchlet
+
+The Dirichlet distribution is paramaterized by positive scalars $\alpha_i > 0$ for i = 1,...,K where K $\geq$ 2. The support of the Dirichlet distribution is the (K -1) dimensional simplex $S_K$. The Dirichlet distribution is a generalization of the Beta distribution, which is conjugate prior for coin flipping 
+
+
+The prior is a dirchlet distribution given as, 
+
+$$
+\begin{aligned}
+\theta &\sim Dirchlet(\alpha) \\ 
+p(\theta \mid \alpha ) &= \frac{\Gamma(\sum^k_{i=1}\alpha_i)}{\prod^K_{i =1}\Gamma(\alpha_i)} \prod_{j = 1}^m \theta _j ^{\alpha_j - 1} \\
+\text{where}, &\sum_j\theta_j = 1, \theta_i \geq 0 \text{ for all i}\\
+\end{aligned}
+$$
+The likelihood is multinomial, distributed as
+
+$$
+\begin{aligned}
+p(X \mid \theta ) &= \frac{\Gamma(n +1)}{\prod^K_{i =1}\Gamma(x_i + 1)}\prod^K_{i =1}p_i^{x_i}\\
+p(X \mid \theta) &\propto \prod^K_{i =1}\prod^M_{j = 1}p_j^{x_i^{(j)}}\\
+\end{aligned}
+$$
+The multinomial distribution can be interpreted as drawing n iid values from a categorical distribution with pmf $f(X = i) = p_i$. Each entry x_i counts the number of times value i was drawn. The gamma functions in the pmf account for the combinations of a draw: it is simply the number of ways of placing n balls in K bins.
+
+Posterior distribution of multinomial-dirchlet is derived as, 
+
+$$
+\begin{aligned}
+p(\theta \mid X) &\propto_\theta \prod_{j = 1}^m \theta _j ^{\alpha_j - 1}\prod^K_{i =1}\prod^M_{j = 1}p_j^{x_i^{(j)}}\\
+&=\prod^M_{j = 1}p_j^{\alpha_j - 1 + \sum_{y_i \epsilon D}y_i^{(j)}} \\ 
+&\sim Dir(\alpha\prime_1, ..., \alpha\prime_M) \\ 
+where, \alpha\prime_j &= \alpha_j + \sum_{y_i \in D}y_i^{(j)}
+\end{aligned}
+$$
+
+\newpage 
+
+#3. Decision theory 
+##3.1 What is decision theory? 
+From Lecture notes & [PhD notes]("http://www2.stat.duke.edu/~rcs46/books/bayes_manuscripts.pdf"). 
+
+**General Set-up**
+
+Assume an unknown state S(a.k.a the state of nature). Assume we recieve an observation x, take an action a and incur a real-valued loss $l(S, a)$. Here, 
+  S = $\theta$, state (unknown)
+  x = $x_{1:n}$, observation (known)
+  a = $\theta^*$, action 
+$l(S,a)$ = loss function
+
+In general, in statistical decision theory, good and bad results are formalized with a loss function (l). The loss function is a function of $\theta \epsilon \Theta$ a parameter or index, and $\delta(x)$ is a decision based on the data $x \epsilon X$. Loss functions provide a very good foundation for statistical decision theory. They are simply a function of the state of nature ($\theta$) and a decision function $\delta(.)$. In order to compare procedures, we need to calculate which procedure is best even though we cannot observe the true nature of the parameter space $\Theta$ or data space X. 
+
+##3.2 Bayesian procedure 
+
+In the bayesian approach , S is treated as a random variable, the distribution of x depends on S and the optimal decision is to choose an action a that minimizes the **posterior expected loss**,
+
+$$\rho(a,x) = \text{E}(l(S,a)|x)$$
+If S is a discrete random variable, 
+
+$$\rho(a,x) = \text{E}(l(S,a)|x) =\sum\limits_s(l(S,a)p(S|x))$$
+$$\color{red}\text{PhD text says "Note that the prior enters the equation when calculating the posterior density"}$$
+If S is continous, the sum is replaced by an integral, integrating over x. Note that posterior loss $\rho$ is a function of the action a, and the given observations x. However, the sum is over the output of the loss function and **posterior distribution**.
+
+A decision procedure $\delta$ is a systematic approach of choosing actions a based on observations $x_1:n$. Typically, this is a deterministic function where $a = \delta(x)$. A bayesian decision procedure is a decision procedure that chooses an a by minimizing the posterior expected loss $\rho(a, x)$ for each x. 
+
+For example, let the loss function be defined as, 
+$$l(\theta, \theta^*) = (\theta - \theta^*)^2$$
+The posterior loss is given by, 
+
+$$
+\begin{aligned}
+\rho(\theta^*, x_{1:n}) &= \text{E}(l(\theta,\theta^*)|x_{1:n})\\
+&= \text{E}(\theta^2 - 2\theta\theta^* + \theta^{*2}|x_{1:n})\\
+&= \text{E}(\theta^2| x_{1:n}) - 2\theta^* \text{E}(\theta|x_{1:n}) + \theta^{*2}\\
+\end{aligned}
+$$
+By taking the derivative to minimize $\rho$, we can find the optimal Bayesian decision rule
+
+$$
+\begin{aligned}
+\frac{\partial \rho(\theta^*,x_{1:n})}{\partial\theta^*} &= \frac{\partial(\text{E}(\theta^2|x_{1:n})- 2\theta^*\text{E}(\theta|x_{1:n}) + \theta^{*2})}{\partial\theta^*}\\
+&= -2\text{E}(\theta|x_{1:n}) + 2\theta^* \\
+-2\text{E}(\theta|x_{1:n}) + 2\theta^* &= 0\\
+\theta^* &= \text{E}(\theta|x_{1:n})
+\end{aligned}
+$$
+
+$$\color{red}\text{Why is this solution unique?}$$
+This is the optimal decision $\delta(x)$, according to the Bayes estimator or Bayes decision rule as it minimizes the posterior expected loss or posterior risk. Estimators can be compared amongst themseleves. For example, a frequentist rule could select $\delta(x)_F = \frac{1}{N}\sum\limits^n_{i=1}x_i$ for the same loss function above. This can be compared with the Bayes decision rule $\delta(x) = \text{E}(\theta|x_{1:n})$. The performance of the estimators can be evaluated by which estimator consistently performs at the lowest Frequnetist risk possible. This is discussed below.  
+
+##3.3 Frequentist Risk 
+
+We are concerned with finding estimators whcih minimize the risk $R(\delta, \theta)$ at every value of $\theta$. Consider the same problem as above where our state variable (unknown), S = $\theta_{p}$. Here we are assuming that $\theta_{p}$ is the true population parameter
+
+In the frequentist risk framework, teh risk associated with a decision procedure $\delta$ is 
+
+$$R(\theta, \delta) = \text{E}(l(\theta_{p}, \delta(X))|\theta_{p} = \theta)$$
+where $\theta$ is our estimate of the population parameter and X has a distribution $p(x|\theta_{p})$ 
+
+$\color{red}\text{Is this the correct interpretation of the frequentist risk- theta p versus theta?}$
+
+If X is continuous, risk is evaluated as, 
+
+$$R(\theta, 
+\delta) = \int\limits_X l(\theta, \delta(x)) p(x|\theta)$$
+
+
+If X is discrete, the integral is replaced with a sum. In the frequentist framework, $\theta$ is held constant and the expectation is taken over the data X. 
+
+Using the same loss function as above, the frequentist risk is 
+
+$$
+\begin{aligned}
+R(\theta, \delta(x)) &= \text{E}_\theta[(\theta -\delta(x))^2]\\
+&= \text{E}_\theta[(\theta + \text{E}(\delta(x))- \text{E}(\delta(x)) - \delta(x))]^2\\
+\color{red} &= (\theta - \text{E}[\delta(x)])^2 + \text{E}[\delta(x) - \text{E}[\delta(x)]]^2\\ 
+&= \text{Bias}^2 + \text{Variance}\\
+\end{aligned}
+$$
+This result allows a frequentist to analyze the variance and the bias of an estimator separately, and can be used to motivate frequentist ideas, e.g. minimum variance unbiased estimators (MVUE). 
+
+Often, one decision does not dominate the other everywhere. A decision which is **inadmissible** is one that is **dominated everywhere**. 
+The existence of an optimal unbiased procedure is a nice frequentists theory, but many good procedures are biased- for example, Bayesian procedures are typically biased. More surprisingly, some unbiased procedures are actually inadmissible. For example, James and Stein showed that the sample mean is an inadmissible estimate of the mean of a multivariate Guassian in three or more dimensions. 
+
+##3.4 Comparisons
+In some sense, the frequentist approach is the opposite of the Bayesian approach. However, sometimes an equivalent Bayesian procedure can be derived using a certain prior. Note that the $R(\theta, \delta) = \text{E}(l(\theta_{p}, \delta(X))|\theta_{p} = \theta)$ is an expectation on X, assuming $\theta$ is fixed. A Bayesian would only look at $x$, the data that was observed, not all the possible X. Here, we condition on the observed data x and integrate across the parameter space $\Theta$. It was the other way around for the Frequentist approach. 
+
+\newpage 
+
+#4. Monte Carlo Methods
+
+*"What if you haven't the data?"*    
+*"Then we shall proceed directly to the cigars and brandy"*   
+-Lyndsey Fay
+
+
+**Motivation**   
+(*From PhD notes*)  
+
+One motivation for Monte Carlo methods is to approximate an integral of the form $\int\limits_Xh(x)f(x)dx$ that is intractable, where f is a probability density. Why not use numerical intergation? 
+
+There is a serious problem of the "curse of dimensionality". Suppose we have a p-dimensional integral. \textcolor{red}{Numerical integration typically entails evaluating the integrand over some grid of points. However, if p is even moderately large, any reasonably fine grade will contain an impractically large number of points. For example, if p = 6, then a grid with 10 points in each dimension- already too coarse for any sensible amount of precision- will consist of $10^6$ points.} Numerical integration tools cannot easily face the highly multidimensional integrals that are the rule in statistical problems. Devising specific integration tools for those problems would be too costly therefore, we take advantage of the probabilistic nature of those integrals. 
+
+##4.1 Random Variable Generation 
+
+*From Robert and Casello 2010, Chapter 2*   
+The methods developed under Monte Carlo methods mostly rely on the possibility of producing (with a computer) a supposedly endless flow of random variables for well-known or new distributions. Such a simulation is in turn, based on the production of uniform random variables on the interval (0,1). The mechanics of producing such uniform variables is not discussed since existing uniform generators are considered "perfect". Therefore, they are used to generate other random variables. In a sense, the uniform distribution $U_{(0,1)}$ provides the basic probabilstic representation of randomness on a computer and generators for all distributions do require a sequence of uniform variables to be simulated. 
+
+###4.1.1 Inverse transform 
+There is a simple, sometimes useful transformation, known as the probability integral transform, that allows us to transform any random variable into a unifrom random variable, and more importantly, vice versa. 
+
+
+For example, if X has density f and cdf F, then we have the relation, 
+
+$$F(x) = \int\limits_{-\infty}^xf(t)dt$$
+and if we set $U = F(X)$, then U is a random variable distributed from a uniform $U(0,1)$. This is because, 
+
+$$
+\begin{aligned}
+P(U \leq u) & = P[F(X) \leq F(x)]\\
+&=P[F^{-1}(F(X)) \leq F^{-1}(F(x))]\\
+&= P(X\leq x)
+\end{aligned}
+$$
+
+Assuming that F has an inverse. This assumption holds for most continuous distributions. 
+
+\textcolor{blue}{\textit{Example 4.1.1}}
+If $X \sim Exp(1)$, then $F(x) = 1 - e^{-x}$ (this is the CDF of an exponential distribution). Solving for x in $u = 1 - e^{-x}$ gives $x = -log(1 - u)$. 
+Therefore, if $U \sim U_{(0,1)}$, then, 
+
+$$X = -logU \sim Exp(1)$$
+Therefore, the inverse cdf of a random variable using a unifrom distribution sample can be used to approximate the pdf of the random variable. 
+If the CDF of a random variable is unknown, this method can always be used to generate samples. 
+
+Note: the generation of uniform random variables is a key determinant of the behavior of simulation methods for other probability distributions since those distributions can be represented as a deterministic transformation of uniform random variables. 
+
+```{r}
+Nsim <- (10^4) #number of random variables
+U <- runif(Nsim) 
+X = -log(U) #transforms of uniforms
+Y = rexp(Nsim) #exponentials from R
+par(mfrow = c(1,2))
+hist(X, freq= F, main = "Exp from Uniform")
+lines(density(X), col= 'red')
+hist(Y, freq = F, main = "Exp from R")
+lines(density(Y), col= 'red')
+```
+
+
+##4.2. Classical Monte Carlo sampling 
+
+Two major classes of numerical problems that arise in statistical inference are optimization problems and integration problems. It is not always possible to analytically compute the estimators associated with a given paradigm (maximum likelihood, Bayes, method of moments etc.). Section 4.1 introduced a number of methods (one method actually, for more methods, refer to [Robert and Casello](\Users\shubhi\Documents\Textbooks\'Introducting Monte Carlo Methods with R.pdf')) for the computer generation of random variables with any given distribution and hence provides a basis for the construction fo solutions to our statistical problems. A general solution is to use simulation of either the true or some substitute distributions, to calculate the quantities of interest. \textcolor{red}{In the set up of decision theory, whether it is classical or Bayesian, this solution is natural since risks and Bayes estimators involve integrals with respect to probability distributions}. 
+
+The generic problem here is to evaluate $E_f[h(x)] = \int\limits_Xh(x)f(x)dx$.  
+
+The classifcal way to solve this is to generate a sample $(X_1... X_n)$ from f and propose as an approximation the empirical average
+
+$$\hat{h} = \frac{1}{n}\sum\limits_{j =1} ^nh(x_j)$$
+It can be shown that $\hat{h}$ converges a.s. (almost surely) to $E_f[h(X)]$ by the *Strong Law of Large Numbers*. 
+
+The asymptotic variance can be approximated and then can be estimated from sample $(X_1,..., X_n)$ by 
+
+$$v_n = \frac{1}{n^2}\sum\limits_{j=1}^n[h(x_j) - \hat{h}_n]^2$$
+Finally, by the Central Limit Theorem (for large n), 
+
+$$\frac{\hat{h}-E_f[h(X)]}{\sqrt{v_n}} \sim N(0,1)$$
+
+\textcolor{blue}{\textit{Example 4.2.1}}  
+
+Given a normal N(0,1), with sample size n, the approximation of 
+$$
+\begin{aligned}
+\phi(t) & = \int^t_{-\infty}\frac{1}{\sqrt{2\pi}}e^{-x^2/2}dy\\
+\\
+\text{By Monte Carlo method, is}\\
+\\
+\hat{\phi}(t) &= \frac{1}{n}\sum\limits^n_{i = 1}\textbf{I}_{x_i \leq t}\\
+\\
+\text{which is}\\
+\\
+\hat{\phi}(t) & =\frac{1}{n}\sum\limits^n_{i = 1}\frac{1}{\sqrt{2\pi}}e^{-x_i^2/2} \quad \text{where } x_i \leq t
+\end{aligned}
+$$
+since $\textbf{I}_{x_i\leq t}$ are independent and Bernoulli trials with success probability $\phi(t)$. 
+
+##4.3. Importance sampling
+
+Importance sampling is called *importance sampling* because it relies on so-called *importance-functions* which are instrumental distributions, in lieu of the original distributions. In fact, an evaluation of $\int_Xh(x)f(x)dx$ is almost never optimal in the sense that using alternative distributions can improve the variances of the resulting estimator. 
+
+Importance sampling involves generating random variables from a different distribution and then reweighing the output. It's name is given since the new distribution is chosen to give greater mass to regions where h is large (the more important part of the space). The importance sampling method is based on an alternative representation of $\int_Xh(x)f(x)dx$. Given an arbritary density g that is strictly positive when h x f is different from zero,  
+
+Let g be an arbitrary density function and then we can write, 
+$$
+\begin{aligned}
+I = E_f[h(x)] &= \int\limits_Xh(x)\frac{f(x)}{g(x)}dx \\
+&=E_g\left[\frac{h(x)f(x)}{g(x)}\right]\\
+\text{This is estimated by,}\\
+\hat{I} &= \frac{1}{n}\sum\limits_{j =1}^n\frac{f(X_j)}{g(X_j)}h(X_j) \rightarrow E_f[h(X)]\\
+\end{aligned}
+$$
+Here, $E_g$ is the expectation under the density g. 
+In other words, $h(x).f(x)$ becomes the new function for estimating x. It should be noted, that the sample will be generated from $g(x)$ distribution, not f!. 
+$E_g$ converges to $E_f$ for the same reason the Monte Carlo estimator $\hat{h}$ converges, whatever the choice of the distributio g (as long as supp(g) $\supset$ supp(h x f)). The constraint on the support is absolute in that using a smaller support truncates the integral and thus produces a biased result. This means, in particular, when considering non-parametric solutions for g, the support of the kernel must be unrestricted. 
+
+Calculating the variance of $\hat{I}$, 
+
+$$
+\begin{aligned}
+Var(\hat{I}) &= \frac{1}{n^2}\sum\limits_iVar\left(\frac{h(X_i)f(X_i)}{g(X_i)}\right) \\
+&= \frac{1}{n}Var\left(\frac{h(X_i)f(X_i)}{g(X_i)}\right)\rightarrow\\
+\hat{Var}(\hat{I}) &= \frac{1}{n}\hat{Var}\left(\frac{h(X_i)f(X_i)}{g(X_i)}\right)
+\end{aligned}
+$$
+
+General algorithm for Importance Sampling 
+
+\begin{itemize}
+\item{Weight the desired distribution with a known pdf}
+\item{Sample from known pdf}
+\item{Using Monte Carlo approximation, approximate the expected value of the reweighted distribution. This expectation should converge with the desired expected value by the law of strong numbers}
+\end{itemize}
+
+\textcolor{blue}{\textit{Example 4.2.2}} (*Example 5.1 from PhD notes*)
+Suppose we want to estimate $P(X > 5)$, where $X \sim N(0,1)$
+
+There are two ways to do this- naive method and importance sampling. 
+
+Using the naive method, we generate n iid standard normals and use the proportion p that are larger than 5. 
+
+Using the importance sampling method, we will sample from a distribution that gives high probability to the "important region" (the set $(5, \infty)$) and then reweight. 
+
+Let $\phi_o$ and $\phi_\theta$ be the densities of $N(0,1)$ and $N(\theta, 1)$ distributions ($\theta$ taken around 5), 
+
+We have, 
+
+$$p = \int I(u > 5)\phi_o(u)du = \int \left[I(u>5)\frac{\phi_o(u)}{\phi_\theta(u)}\right]\phi_\theta(u)du$$
+
+In other words, if 
+$$h(u) = I(u > 5)\frac{\phi_o(u)}{\phi_\theta(u)}$$
+them $p = E_{\phi_\theta}[h(X)]$. If $X_1,...,X_n \sim N(\theta,1)$, then the unbiased estimate is $\hat{p} = \frac{1}{n}\sum_ih(X_i)$.
+
+\textcolor{blue}{\textit{Example 4.2.3}}  (*Example 3.5 from Robert and Casello 2010*)  
+Approximating tail probabilities using standard Monte Carlo sums breaks down once one goes far enough into the tails. For example, if $Z \sim N(0,1)$ and we are interested in the probability $P(Z > 4.5)$, which is very small, simulating Z only produces a hit once in every 3 million iterations! Therefore, if we are interested in the probability of a very rare event, the naive simulation from f will require a huge number of simulations to get a stable answer. However, using importance sampling, we can greatly improve our accuracy and thus bring down the number of simulations by several order of magnitude. 
+
+In this case, we consider a distribution with support restricted to (4.5, $\infty$), the additional and unecessary variation of the Monte Carlo estimator due to simulating zeros (when x < 4.5) disappears. A natural choice is to take g as the density of an exponential distribution truncated at 4.5. \textcolor{red}{Why is exponential distribution a natural choice?}
+
+$$g(y) = \frac{e^{-y}}{\int\limits^\infty _{4.5}e^{-x}dx} = e^{-(y-4.5)}$$
+and the corresponding importance sampling estimator of the tail probability is, 
+
+$$\frac{1}{n}\sum\limits^n_{i=1}\frac{f(Y^{(i)})}{g(Y^{(i)})} = \frac{1}{n}\sum\limits_{i = 1}^N\frac{e^{-Y_i^2/2 +Y_i- 4.5}}{\sqrt{2\pi}}$$
+where the $Y_i$'s are iid generations from $g$. 
+
+```{r}
+Nsim = 10^3
+y = rexp(Nsim) + 4.5
+weit = dnorm(y)/dexp(y - 4.5)
+plot(cumsum(weit)/1:Nsim, type = "l", ylab =" ", xlab = "Iterations")
+abline(a = pnorm(-4.5), b = 0, col = "red")
+```
+
+Importance sampling is therefore of considerable interest since it puts very little restriction on the choice of the instrumental distributionn g, which can be chosen from distributions that are either easy to simulate or efficient in the approximation of the integral. Moreover, the same sample (generated from g) can be used repeatedly, not only for different functions h but also for different densities f. 
+
+
+##4.4. Rejection sampling
+
+There are many distributions for which the inverse transform and even general transformations will fail to generate the required random variables. For these cases, we must turn to indirect methods; i.e. methods in which we generate a candidate random variable and only accept it subject to passing a test. 
+
+The rejection methods require us to know the functional form of the density f of interest (called the target density) up to a multiplicative constant. We use a simple density g, called the instruemental or cadidate density, to generate the random cariables for which the simulation is actually done. The constraints we impose on this candidate density g are 
+
+(i) f and g have compatible supports (i.e. g(x) > 0 when f(x) > 0)  
+(ii) There is a constant M with $f(x)/g(x) \leq M$ for all x  
+
+In this case, X can be simulated as follows. 
+\begin{itemize}
+\item{First, we generate $Y \sim g$ and independently we generate $U \sim U_{[0,1]}$.} 
+\item{If 
+$$U \le \frac{1}{M}\frac{f(Y)}{g(Y)}$$,
+then we set X = Y. If the inequality is not satisfied, we discard Y and U and start again. }
+\end{itemize}
+
+Why does this method work? A probability calculation shows that the cdf of the accepted random variable $P(Y \leq x \mid U \leq f(Y)/Mg(Y))$ is exactly the cdf of X. 
+
+$$
+\begin{aligned}
+P(Y \leq x \mid Y \leq f(Y)/Mg(Y)) &=\frac{P(Y \leq x, U \leq f(Y)/Mg(Y))}{P(U \leq f(Y)/Mg(Y))} \\
+&= \frac{\int^x_{-\infty}\int^{f(y)/Mg(y)}_0du.g(y).dy}{\int_{-\infty}^\infty\int_0^{f(y)/Mg(y)}du.g(y)dy}\\
+&= \frac{\int^x_{-\infty}[f(y)/Mg(y)].g(y).dy}{\int_{-\infty}^{\infty}[f(y)/Mg(y)].g(y).dy} \\
+&= \frac{\int^x_{-\infty}f(y)dy}{\int^\infty_{-\infty}f(y)dy} = P(X\le x)
+\end{aligned}
+$$
+where we use the fact that the uniform integral is equal to its upper limit. Despite simulating only from g, the output of this algorithm is this exactly distributed from f. 
+
+
+##4.5 Metropolis-Hasting algorithm 
+
+*Notes from Doing Bayesian Analysis- Chapter 7*  
+
+The class of methods used to produce accurate approximations to Bayesian posterior distributions for realistic applications are called Markov chain Monte Carlo (MCMC). 
+
+The summary of the random walk algorithm is as follows: We are currently at a position $\theta_{current}$. We propose to move one position right or one position left. The specific proposal is determined by flipping a coin, which can result in 50% heads (move right) or 50% tails (move left). The range of possible proposed moves, and the probability of proposing each, is called a proposal distribution. In this algorithm, the proposal distribution is very simple: it has only two values with 50-50 probabilities. 
+
+Having proposed a move, we decide whether to accept it or not. The acceptance decision is based on the value of the target distribution at the proposed position, relative to the value of the target distribution at our current position. Specifically, if the target distribution is greater at the proposed position than at our current position, then we definitely accept the proposed move: we always move higher if possible. On the other hand, if the target position is less at the proposed position than at our current position, we accept the move probabilistically. 
+We move to the proposed position with probability 
+$$p_{move} = \frac{P(\theta_{proposed})}{P(\theta_{current})}$$
+where $P(\theta)$ is the value of the target distribution at $\theta$. We can combine the two possibilities, of the target distirbution being higher or  lower at the proposed position than at our current position, into a single expression for the probability of moving to the proposed position: 
+
+$$p_{move} = min\left(\frac{p(\theta_{proposed})}{p(\theta_{current})}, 1\right)$$
+
+So, when $p(\theta_{proposed}) > p(\theta_{current})$, then $p_{move} = 1$ i.e. definitely move. 
+
+For the random walk process, we must be able to 
+\begin{itemize}
+\item{Generate a random value from the proposal distribution to create $\theta_{proposed}$.}
+\item{Must be able to evaluate the target distribution at any proposed position to compute $P(\theta_{proposed})/P(\theta_{current})$.} 
+\item{Must be able to generate a random valueu from a uniform distribution, to accept or reject the proposal according to $p_{move}$.} 
+\end{itemize}
+
+
+**Why does the algorithm work?** 
+Suppose we are at positionn $\theta$. The probability of moving to $\theta + 1$ is denoted by $p(\theta \rightarrow \theta + 1)$. This probability is the probability of proposing that move times the probability of accepting it if proposed which is 
+
+$$p(\theta \rightarrow \theta + 1) = (0.5)\text{min}\left(\frac{P(\theta + 1)}{P(\theta)}, 1\right)$$
+The ratio of the transition probabilities is proportional to $\frac{P(\theta + 1)}{P(\theta)}$
+
+This equation tells us that during transitions back and forth between adjacent positions, the relative probability of the transitions exactly matches the realtive values of the target distribution. Therefore, in the long run, adjacent positions will be visited proportionally to their relative values in the target distribution. If that's true for adjacent positions, then, by extrapolating from one position to the next, it must be true for the whole range of positions.   
+
+###4.5.1 A peek at Markov chain theory 
+
+*From Robert and Casello (2010)*
+
+A Markov chain $X^{(t)}$ is a sequence of dependent random variables $X^{(0)}, X^{(1)}, X^{(2)}... X^{(t)}$, such that the probability distribution $X^{(t)}$ given the past variables depends on only $X^{(t-1)}$. This conditional probability distribution is called a transition kernel or a Markov kernel K i.e. 
+$$X^{(t +1)}\mid X^{(0)},X^{(1)}.., X^{(t)} \sim K(X^{(t)}, X^{(t + 1)})$$
+For example, a simple random walk Markov chain satisfies 
+
+$$X^{(t + 1)} = X^{(t)} + \epsilon_t,$$
+where $\epsilon_t \sim N(0,1)$ independently of $X^{(t)}$. 
+
+For the most part, the Markov chains encountered in Markov Chain Monte Carlo settings enjoy a very strong stability property. A stationary probability distribution exists by construction for those chains, i.e. there exists a probability distribution f such that if $X^{(t)} \sim f$ the $X^{(t + 1)} \sim f$. Therefore, the kernel and stationary distribution satisfy the equation, 
+$$\int_X K(x,y)f(x)dx = f(y)$$
+The existence of a stationary distribution (or stationarity) imposes a preliminary constraint on K called irreducibility in the theory of Markov chains, which is that the kernel K allows for free moves all over the stater-space, namely that, no matter the starting value $X^{(0)}$ , the sequence $X^{(t)}$ has a positive probability of eventually reaching any region of the state-space. 
+
+The existence of a stationary distribution has major consequences on the behavior of the chain, one of which being that most of the chains involved in MCMC algorithms are recurrent i.e. they will return to any arbitrary nonnegligible set an infinite number of times. 
+
+In the case of recurrent chains, the stationary distribution is also a limiting distribution in the sense that the limiting distribution of $X^{(t)}$ is f for almost any initial value $X^{(0)}$. This property is also called **ergodicity**, and it obviously has major consequences from a simulation point of view in that, if a given kernel K produces an ergodic Markov chain with stationary distribution f, generating a chain from this kernel K will eventually produce simulations from f. In particular, for integrable functions h, the standard average 
+
+$$\frac{1}{T}\sum_{t=1}^Th(X^{(t)}) \rightarrow E_f[h(X)]$$
+which means that the Law of Large Numbers that lies at the basis of Monte Carlo methods can also be applied in MCMC settings (it is then sometimes called the Ergodic theorem). 
+
+###4.5.2 Basic of M-H algorithm
+
+The working principle of Markov chain Monte Carlo methods is quite straightforward to describe. Given a target density f, we build a Markov Kernel K with stationary distribution f and then generate a Markov chain $X^{(t)}$ using this kernel so that the limiting distribution of $X^{(t)}$ is f and integrals can be approximated according to the Ergodic Theorem. The difficulty is in constructing a kernel K that is associated with an arbritary density f. The Metropolis-Hastings algorithm is an example of methods that can do that.
+
+Given the target density f, it is associated with a working conditional density $q(y\mid x)$ that is easy to simulate in practice. The only theoretical requirements here are that the ratio of $f(y)/q(y\mid x)$ is known upto a constant independent of x and that q has enough dispersion to lead to an exploration of the entire support of f. 
+The incredible feature of M-H algorithm is that, for every given q, we can construct a M-H kernel such that f is the stationary distribution. 
+
+The M-H algorithm associated with the objective (target) density f and the conditional density q produces a Markov chain $X^{(t)}$ through the following transition kernel  
+
+1. Generate $Y_t \sim q(y\mid x^{(t)})$   
+
+2. Take  
+$$
+\begin{aligned}
+X^{(t+1)} &= \left\{
+        \begin{array}{ll}
+            Y_t & \quad \text{with probability }p(x^{(t)}, Y_t), \\
+            x^{(t)} & \quad \text{with probability }1- p(x^{(t)}, Y_t),
+        \end{array}
+    \right.\\
+  \text{where,}\\
+  p(x,y) &= min\left(\frac{f(y)}{f(x)}\frac{q(x\mid y)}{q(y \mid x)},1\right)\\
+\end{aligned}
+$$
+
+The distribution q is called the instrumental (or proposal or candidate) distribution with the probability $p(x, y)$ the Metropolis-Hastings acceptance probability. It is to be distinguished from the acceptance rate, which is the average of the acceptance probability over iterations, 
+
+$$\hat{p} =\lim_{T \rightarrow \infty} \frac{1}{T}\sum^T_{t=0}p(X^{(t)}, Y_t) = \int p(x,y)f(x)q(y\mid x) dy d x $$
+
+
+##4.6 Gibbs Sampling 
+
+The generic problem for gibbs sampling is we have a pdf or pmf p(x,y) that is difficult to sample from directly. However, we can easily sample from the conditional distirbutions p(x | y) and p(y | x). In such cases, posterior approximation can be made with Gibbs sampler, an iterative algorithm that constructs a dependent sequence of parameter values whose distribution converges to the target joint posterior distribution. 
+
+The Gibbs sampler algorithm proceeds as follows: 
+
+\begin{enumerate}
+\item{Set x and y to some initial starting values e.g. $(x_0, y_0)$}
+\item{Then sample $x_1 \sim p(x\mid y_0)$ that is, from the conditional distirbution. \textcolor{blue}{The current state is $(x_1, y_0)$}}
+\item{Sample $y_1 \sim p(y \mid x_1)$, that is, from the conditional distribution. \textcolor{blue}{The current state is $(x_1, y_1)$}}
+\item{Sample $x_2 \sim p(x \mid y_1)$ from the conditional distribution. \textcolor{blue}{The current state is $(x_2, y_1)$}}
+\item{Sample $y_2 \sim p(y \mid x_2)$, that is, from the conditional distribution. \textcolor{blue}{The current state is $(x_2, y_2)$}}
+\item{$\vdots$}
+\item{Repeat M times}
+\end{enumerate}
+
+This procedure defines a sequnece of pairs of random variables, $$(X_0, Y_0), (X_1, Y_1), (X_2, Y_2), \cdots, (X_m, Y_m)$$
+
+This sequence satisfies the property of being a Markov chain. The conditional distribution of $(X_{i + 1}, Y_{i+1})$ given all of the previous pairs depends only on $(X_i, Y_i)$. Note, this sequence is not an iid sample. 
+
+The sampling distribution approaches the target distribution as $n \rightarrow \infty$, no matter what the initialized values of the Gibbs sampler are (althoguh some starting values will get you to the target sooner than others). 
+
+\textit{\textcolor{blue}{Example 4.6.1}}
+Consider an exponential model for observations 
+
+$$p(x \mid a, b) = (ab)\text{e}^{-abx} I(x > 0) $$
+and suppose the prior is, 
+
+$$p(a, b) = \text{e}^{-a-b} I(a, b >0)$$
+
+We want to sample from the posterior $p(a,b \mid x)$
+
+The conditional distribution is, 
+
+$$
+\begin{aligned}
+p(x \mid a, b) &= \prod^n_{i =1}p(x_i \mid a, b) \\ 
+&= \prod^n_{i = 1}(ab) \text{exp}^{-abx_i}\\ 
+&= (ab)^n \text{exp}(-ab \sum^n_{i =1} x_i) \\
+\end{aligned}
+$$
+The function is symmetric for a and b so we only need to derive one conditional. 
+
+$$
+\begin{aligned}
+p(a \mid x, b) &\propto_a  p(a, b, x) \\ 
+&= p(x \mid a, b)p(a, b) \\ 
+&= (ab)^n \text{exp}(-ab \sum^n_{i =1} x_i) \times \text{exp}^{-ab}\\
+& = (ab)^n \text{exp}(-ab (\sum^n_{i =1} x_i + 1))
+\end{aligned}
+$$
+Apply Gibbs sampler by alternatively sampling from the conditional distributions updating a, b and x alternatively. 
+
+\textit{\textcolor{blue}{Example 4.6.2}}
+
+Consider $X_1, \cdots X_n\mid, \lambda \sim \text{i.i.d.} N(\mu, \lambda^{-1})$. Then, independently consider, 
+
+$$
+\begin{aligned}
+\mu &\sim N(\mu_0, \lambda_0^{-1})\\
+\lambda &\sim Gamma(a,b)\\
+\end{aligned}
+$$
+
+\textbf{Note:} This is called a semi-conjugate situation, in the sense that $\mu$ is conjugate for each fixed value of $\lambda$, and the prior on $\lambda$ is conjugate for each fixed value of $\mu$. 
+
+For a Normal-Normal model, we know 
+
+$$\mu \mid \lambda, x_{1:n} \sim (M_\lambda, L_\lambda^{-1})$$
+where, 
+$$L_\lambda = \lambda_0 + n\lambda \text{ and,}$$ 
+$$M_\lambda = \frac{\lambda_0\mu_0 + \lambda\sum^n_{i=1}x_i}{\lambda_0 + n \lambda}$$
+
+For any fixed value of $\mu$, we can derive, 
+
+$$\lambda \mid \mu, x_{1:n} \sim Gamma(A_\mu, B_\mu)$$
+where, 
+
+$$A_\mu = a + n/2 \text{ and,}$$
+$$B_\mu = b + \frac{1}{2}\sum(x_i - \mu)^2 = n\hat{\sigma}^2 + n(\bar{x} - \mu)^2$$
+
+where, $\hat{\sigma}^2 = \frac{1}{n}\sum(x_i - \bar{x})^2$. 
+
+Implement the Gibbs sampling in this example, each iteration consits of sampling 
+
+$$\mu \mid \lambda, x_{1:n} \sim N(M_\lambda, L_\lambda^{-1})$$
+$$\lambda \mid \mu, x_{1:n} \sim Gamma (A_\mu, B_\mu)$$
+
+###4.6.1 Multistage Gibbs sampler 
+
+The generic multistage gibbs sampler is as follows: Assume three random variables with joint pmf or pdf, p(x, y, z)
+
+Set x, y and z to some values $(x_0, y_0, z_0)$. Sample from the conditional distributions as follows 
+
+\begin{enumerate}
+\item{Set $(x_0, y_0, z_0)$ to some starting value}
+\item{\textcolor{blue}{Current state: $(x_0,y_0, z_0)$}}
+\begin{enumerate}
+\item{Sample $x_1 \sim p(x \mid y_0, z_0)$}
+\item{Sample $y_1 \sim p(y \mid x_1, z_0)$}
+\item{Sample $z_1 \sim p(z \mid x_1, y_1)$}
+\end{enumerate}
+\item{\textcolor{blue}{Current state: $(x_1, y_1, z_1)$}}
+\begin{enumerate}
+\item{Sample $x_2 \sim p(x \mid y_1, z_1)$}
+\item{Sample $y_2 \sim p(y \mid x_2, z_1)$}
+\item{Sample $z_2 \sim p(z \mid x_2, y_2)$}
+\item{$\vdots$}
+\end{enumerate}
+\item{Repeat M times}
+\end{enumerate}
+
+###4.6.2 Application to censored data 
+
+$$
+X_i = \left\{
+        \begin{array}{ll}
+            Z_i & \quad  \text{if } Z_i \leq c_i \\
+            c_i & \quad \text{if }Z_i > c_i
+        \end{array}
+    \right.
+$$
+$$Z_1, \cdots, Z_n \mid \theta \sim Gamma(r, \theta)$$
+$$\theta \sim Gamma(a,b)$$
+where a, b and r are known. 
+
+With censored data, where the value is fixed. It is only known whether or not censoring occurs. 
+
+\textcolor{red}{COME BACK TO THE CENSORED DATA APPLICATION}
+
+###4.6.3 Latent variables and Gibbs sampler
+
+Goal is to sample from p(x, y). However, we cannot sample from p(x, y) directly or the conditional distributions p(x | y) and/or p(y | x). To overcome this problem, we introduce a latent/hidden variable Z such that we can sample from p(x|y, z), p(y| x, z), p(z| x, y). In this case, we will construct a Gibbs Sampler than will approximate p(x, y, z) using the conditionals. Since we are interested in sampling from p(x, y) and not p(x, y, z), we will chuck all the Z's so we are left with samples (X,Y) from p(x, y). 
+
+\textit{\textcolor{blue}{Example: Two component mixture model}}
+
+Let X be data from a two component normal mixture model, 
+
+$$
+\begin{aligned}
+X_i \mid \mu, \pi &\sim F(\mu, \pi)\\
+\mu := (\mu_0, \mu_1) &\sim  N(m, l^{-1}) \\
+\pi &\sim Beta(a, b) \\
+\text{where, } f(x \mid \mu, \pi) = (1 - \pi) &N(x \mid \mu_0, \lambda^{-1}) + (\pi)N(x \mid \mu_1, \lambda^{-1})\\
+\end{aligned}
+$$
+
+The likelihood for the two component mixture model is, 
+
+$$p(x_{1:n} \mid \mu, \pi) = \prod^n_{i = 1} (1- \pi)N(x_i \mid \mu_0, \lambda^{-1}) + \pi N(x_i \mid \mu_1, \lambda^{-1})$$
+However, this is a complicated likelihood to sample from directly. To overcome this problem, we can introduce latent variable z relates to which component of the mixture model a data point comes from. 
+
+The new model is specified below, 
+
+$$
+\begin{aligned}
+X_i \mid &\sim N(\mu_{z_i}, \lambda^{-1}) \\
+Z_1 \cdots Z_n \mid \mu, \pi &\sim Bernoulli(\pi) \\ 
+\mu := (\mu_0, \mu_1) &\sim N(m,l^{-1}) \\ 
+\pi &\sim Beta(a, b)\\
+\end{aligned}
+$$
+
+Proving model equivalence, 
+
+$$
+\begin{aligned}
+p(x_i \mid \mu, \pi) &= p(x_i \mid z_i = 0, \mu, \pi)P(\pi \mid Z = 0, \mu) \\
+&+ p(x_i \mid z_i = 1, \mu, \pi)  P(Z = 1\mid \mu, \pi)  \\
+&= (\pi) N(\mu_0, \lambda^{-1}) + (1-\pi)N(\mu_1, \lambda^{-1})\\ 
+&= f(x_i \mid \mu, \pi)\\
+\end{aligned}
+$$
+
+Deriving full conditionals, 
+
+$$
+\begin{aligned}
+\pi \mid \cdots \qquad &\qquad  \\ 
+p(\pi \mid \mu, z, x) &= p(\pi \mid z)\qquad \text{ - given z}, \pi \text{ is independent of everything else}\\
+&\propto  p(\pi) p(z \mid \pi ) \\ 
+& \propto \pi^{a -1} (1 - \pi)^{b -1} \left(\prod^n_{i = 1} \pi^{z_i}(1 - \pi)^{1 - z_i}\right) \\ 
+& =  \pi^{a -1} (1 - \pi)^{b -1} \pi^{\sum z_i}(1- \pi)^{n - \sum z_i}\\ 
+\text{let, } n_0 &= \sum z_i I(z_i = 0),\quad  n_1 = \left( n - \sum z_i I(z_i = 0) \right)= \sum z_i I(z_i = 1)\\
+&= \pi^{a -1} (1 - \pi)^{b -1} \pi^{n_0} (1 - \pi)^{n_1}\\ 
+&= \pi^{a + n_0 -1}(1- \pi)^{b + n_1 - 1}\\ 
+&\sim Beta(a + n_0, b + n_1)\\
+\end{aligned}
+$$
+
+
+$$
+\begin{aligned}
+\mu \mid \cdots \qquad \quad &\qquad \\
+p(\mu_0 \mid \mu_1, x, \pi, z) &= p(\mu_0)p(z, x, \pi \mid \mu_0) \\ 
+& = p(\mu_0) p(z, x \mid \mu_0) \quad \text{since given z, } \mu_0 \text{ is independent} \\ 
+&\propto_\mu p(\mu_0)p(x, \mid z, \mu_0) \\
+&=_\mu N(\mu_0 \mid m, l^{-1}) N(x_{1:n}\mid \mu_0,  \lambda^{-1}) \\
+&=_\mu \sqrt{\frac{l}{2\pi}} e(\frac{-l}{2}(\mu_0 - m)^2). \left(\frac{\lambda}{2\pi}\right)^{n/2}e(\frac{-\lambda}{2}\sum^{n_0}_i(x_i - \mu_0)^2) \\ 
+&\sim N(M_0, L^{-1}_0) \\ 
+where, L_0  = l &+ n_0\lambda, \quad  M_0 = \frac{lm + \lambda \sum_{i:z_i=0}x_i}{l + n_0 \lambda}\\ 
+similarly,\\ 
+p(\mu_1 \mid \mu_0, x, \pi, z) &\sim N(M_1, L_1^{-1}) \\ 
+where, L_1  = l &+ n_1\lambda, \quad  M_1 = \frac{lm + \lambda \sum_{i:z_i=1}x_i}{l + n_1 \lambda}\\ 
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+z \mid \cdots \quad &\qquad \\
+p(z \mid \mu, \pi, x ) &\propto_z p(x, z, \pi, \mu) \\
+&\propto_z p(x \mid z, \mu) p(z \mid \pi) \\ 
+&= \prod^n_{i= 1} N(x_i \mid \mu_{z_i}, \lambda^{-1}) Bernoulli (z_i \mid \pi) \\ 
+&= \prod^n _{i = 1} (\pi N(x_i \mid \mu_0, \lambda^{-1}))^{z_i}((1- \pi)N(x_i \mid \mu_1, \lambda^{-1}))^{1 -z_i} \\ 
+&= \prod^n_{i = 1} \alpha_{i, 1}^{z_i}\alpha_{i, 0}^{1 - z_i} \\ 
+where, \alpha_{i,0} &= \pi N(x_i \mid \mu_0 , \lambda^{-1}), \quad \alpha_{i, 1} = \pi N(x_i \mid \mu_1, \lambda^{-1}) \\ 
+&\sim \prod_{i = 1}^n Bernoulli \left(z_i \mid \frac{\alpha_{i, 1}}{\alpha_{i, 0} + \alpha_{i,1}}\right)
+\end{aligned}
+$$
+
+\textit{\textcolor{blue}{Example: Three component mixture model}}
+$$
+\begin{aligned}
+Y_i \mid \mu_1, \mu_2, \mu_3, \varepsilon^2, w_1, w_2, w_3 &\sim \sum^3_{j =1}w_iN(\mu_j, \varepsilon^2)\\
+\mu_j \mid \mu_0, \sigma^2_0 &\sim N(\mu_0, \sigma^2_0) \\ 
+\mu_0 &\sim N(0,3) \\ 
+\sigma^2_0&\sim IG(2,2)\\
+w_1, w_2, w_3 &\sim Dirchlet(3, 1)\\
+\varepsilon^2 &\sim IG(2, 2)\\
+\end{aligned}
+$$
+This case is without latent variables. The issue with this is the full conditionals are extremely difficult to work with. Part of the full conditionals are given below- due to the sum structure in them, it is difficult to sample from them directly. 
+
+$$
+\begin{aligned}
+p(\mu_k \mid Y_1,\cdots, Y_n, \sigma^2_0, \varepsilon^2, w_1, w_2, w_3) &\propto_\mu \frac{1}{\sqrt{2\pi\sigma^2_0}}e\left(\frac{1}{2\sigma_0^2}(\mu_k - \mu_0)^2\right) \\
+&. \prod^N_{i = 1}\left(\sum^3_{j = 1}w_j \frac{1}{\sqrt{2\pi\varepsilon^2}}e\left(\frac{-1}{2\varepsilon^2}(y_i -\mu_j)^2\right)\right)\\
+ \\
+p(w_1, w_2, w_3 \mid Y_1, \cdots, Y_n, \mu_1, \mu_2, \mu_3, \varepsilon^2)&\propto_w \prod^N_{i = 1}\left(\sum^3_{j = 1}w_j \frac{1}{\sqrt{2\pi\varepsilon^2}}e\left(\frac{-1}{2\varepsilon^2}(y_i -\mu_j)^2\right)\right) \\ 
+ \\
+ p(Y_i \mid \mu_1, \mu_2, \mu_3, w_1, w_2, w_3, \varepsilon^2) &=\sum^3_{j = 1}w_j \frac{1}{\sqrt{2\pi\varepsilon^2}}e\left(\frac{-1}{2\varepsilon^2}(y_i -\mu_j)^2\right)\\
+p(Y_1, \cdots, Y_n \mid \mu_1, \mu_2, \mu_3, w_1, w_2, w_3, \varepsilon^2) &\propto_{y_i} \prod^N_{i = 1}\left(\sum^3_{j = 1}w_j \frac{1}{\sqrt{2\pi\varepsilon^2}}e\left(\frac{-1}{2\varepsilon^2}(y_i -\mu_j)^2\right)\right)\\
+\end{aligned}
+$$
+
+Any conditional distribution with the likelihood structure makes it difficult to sample from. 
+
+Therefore, to overcome this issue, we introduce a latent variable, Z, to condition on. The full model is now, 
+
+$$
+\begin{aligned}
+Y_i \mid z_i, \mu_1, \mu_2, \mu_3, \varepsilon^2 &\sim N(\mu_{z_i}, \varepsilon^2) \\ 
+\mu_j \mid \mu_0, \sigma^2_0 &\sim N(\mu_0, \sigma^2_0) \\ 
+z_i \mid w_1, w_2, w_3 &\sim Cat(3, \mathbf{w}) \\ 
+\mathbf{w} = (w_1, w_2, w_3) &\sim Dirchlet(1, 1, 1)\\
+\mu_0 &\sim N(0, 3)\\ 
+\sigma_0^2 &\sim IG(2, 2)\\
+\varepsilon^2 &\sim IG(2, 2)\\
+\end{aligned}
+$$
+
+The full conditionals are then re-derived to give, 
+
+$$
+\begin{aligned}
+p(\mu_0 \mid \cdots) &= N\left(\frac{\sigma^2_0\sum^3_{i = 1}\mu_i}{1/3+3\sigma^{-2}_0}, (1/3+3\sigma^{-2}_0)^{-1}\right) \qquad \text{(Normal-normal update)} \\
+p(\sigma^2_0 \mid \cdots) &= IG\left(2 + 3/2, 2+ (1/2) \sum^3_{i= 1}(\mu_u - \mu_0)^2\right) \qquad \text{(Normal-inverse gamma update)}\\
+p(\varepsilon^2 \mid \cdots) &= IG\left(2+ n/2, 2 + (1/2)\sum^n_{i = 1}(Y_i - \mu z_i)^2\right) \qquad \text{(Normal-inverse gamma update)} \\ 
+p(\mathbf{w} \mid \cdots ) &= Dir(3, (1 + N_1, 1 + N_2, 1 + N_3)) \qquad \text{(Dirchlet-multinomial update (?))}\\ 
+p(\mu_j \mid \cdots) &= N\left(\left(\mu_0\sigma_0^{-2} + \varepsilon^{-2}\sum_{i:Z_i = j}y_i\right)(\sigma_0^{-2} + N_j\varepsilon^{-2})^{-1}, (\sigma_0^{-2} + N_j\varepsilon^{-2})^{-1}\right) \text{(Normal-normal update)}\\
+P(Z_i = j) &= \frac{w_jN(y_i\mid \mu_j, \varepsilon^2)}{\sum^3_{k = 1}w_kN(y_i \mid \mu_k, \varepsilon^2)} \qquad \text{?}\\
+\end{aligned}
+$$
+
+
+##4.7 MCMC diagnostics 
+
+The purpose of Monte Carlo or Markov chain Monte Carlo approximation is to obtain a sequence of parameter values $\phi^{(1)}, ..., \phi^{(S)}$ such that, 
+
+$$\frac{1}{S}\sum^S_{s=1}g(\phi^{(s)}) \approx \int g(\phi) p(\phi) d\phi$$
+where g is a function of interest. In other words, we want the empirical average of $g(\phi^{(1)}), ..., g(\phi^{(S)})$ to approximate the expected value of $g(\phi)$ under a target probability distirbution $p(\phi)$. 
+
+If the Markov chain starts off in a region of the parameter space that has high probability, then convergence generally is not a big issue. If you do not know if you are starting off in a good region, assessing convergence is fraught with epistemological problems. In general, you cannot know for sure if your chain has convered. Sometimes you can known if your chain has not converged. One thing to check for is \textbf{stationarity}, or that samples taken in one part of the chain have a similar distribution to samples taken in other parts. For some highly parameterized models, autocorrelation in the chain is high, good starting values can be hard to find and it can take a long time to get to stationarity. In these cases we need to run the MCMC sampler for a very long time. 
+
+How quickly a particle moves around the parameter space is called the speed of \textbf{mixing}. An independent MC sampler has perfect mixing: it has zero autocorrelation and can jump between different regions of the parameter space in one step. 
+
+\textbf{How does the correlation of the MCMC samples affect posterior approximation?}
+
+\textit{From Hoff, page 102}
+
+If the $\phi$ values are independent Monte Carlo samples from $p(\phi)$, then the variance of $\bar{\phi} = \sum\phi^{(s)}/S$ is, 
+
+$$Var_{MC[\bar{\phi}]} = E[(\bar{\phi} - \phi)^2] = \frac{Var[\phi]}{S}$$
+
+where, $Var[\phi] = \int \phi^2 p(\phi) d \phi - \phi^2_0$. 
+
+However, when using an MCMC algorithm such as the Gibbs sampler, consecutive MCMC samples $\phi^{(s)}$ and $\phi^{(s + 1)}$ can be positively correlated. Assuming stationarity has been achieved, the expected squared difference from the MCMC integral approximation $\bar{\phi}$ to the target $\phi_0  = \int\phi p(\phi) d \phi$ is the MCMC variance, and is given by
+
+$$
+\begin{aligned}
+Var_{MCMC[\bar{\phi}]} &= E[(\bar{\phi} - \phi_0)^2] \\
+& = E[(\frac{1}{S} \sum(\phi^{(s)} - \phi_0))^2] \\ 
+& = \frac{1}{S^2}E[\sum_{s = 1}^S(\phi^{(s)} - \phi_0)^2 + \sum_{s \neq t}(\phi^{(s)} - \phi_0)(\phi^{(t)} - \phi_0)] \\
+& = Var_{MC[\bar{\phi}]} + \frac{1}{S^2}\sum_{s \neq t} E[(\phi^{(s)} - \phi_0)(\phi^{(t)} - \phi_0)]\\
+\end{aligned}
+$$
+
+So the MCMC variance is equal to the MC variance plus a term that depends on the correlation of samples within the Markov chain. This term is generally positive and so the MCMC variance is higher than the MC variance, meaning that we expect the MCMC apprpoximation to be further away from $\phi_0$ than the MC approximation is. The higher the autocorrelation in the chain, the larger the MCMC variance and the worse the approximation is. To assess how much correlation there is in the chain, we often compute the sample autocorrelation function. For a generic sequence of numbers, the lag-t autocorrelation function estimates the correlation between elements of the sequence that are t steps apart: 
+
+$$acf_t(\phi) = \frac{\frac{1}{S-t}\sum^{S- t}_{s = 1}(\phi_s - \bar{\phi})(\phi_{s + t} - \bar{\phi})}{\frac{1}{S-1}\sum^S_{s = 1}(\phi_s - \bar{\phi})^2}$$
+
+The higher the autocorrelation, the more MCMC samples we need to attain a given level of precision for our approximation. This is known as effective sample size. 
+
+
+\newpage 
+
+
+
+\newpage
+
+#5. Objective Bayes
+
+*"Every time I think I know what's going on, suddenly there's another layer of complications. I just want this damn thing solved."*  
+-John Scalzi, *The Last Colony*
+
+
+#6. Linear Regression 
+
+\textit{from Hoff, First Course in Bayesian Statistics}
+
+This section contains a brief introduction to the linear regression model and the corresponding Bayesian approach to estimation. Additionally, it contains a discussion on the relationship between Bayesian and the ordinary least squares regression estimates. 
+
+##6.1 Ordinary Least Squares
+
+Regression modeling is concerned with describing how the sampling distribution of one random variable Y varies with another variable or set of variables $\mathbf{x} = (x_1, ... x_p)$. A regression model postulates a form for $p(y \mid \mathbf{x})$, the conditional distribution of Y given $\mathbf{x}$. Estimation of $p(y \mid \mathbf{x})$ is made using data $y_1, ... y_n$ gathered under a variety of conditions $\mathbf{x_1,...,x_n}$.
+
+A linear regression model specifies, 
+
+$$\int yp(y \mid \mathbf{x}) = E[Y \mid \mathbf{x}] = \beta_1x_1 + ... + \beta_px_p = \mathbf{B^Tx}$$
+We will assume that in addition to $E[Y\mid\mathbf{x}]$ being linear, the sampling variability around the mean is i.i.d from a normal distribution i.e. 
+
+$$
+\begin{aligned}
+\epsilon_1, \cdots, \epsilon_n &\sim \text{i.i.d. N}(0, \sigma^2)\\
+Y_i &= \mathbf{\beta^Tx_i} + \epsilon_i\\
+\end{aligned}
+$$
+
+This model provides a complete specification of the joint probability density of observed data $y_1, \cdots ,y_n$ conditional on $\mathbf{x_1, \cdots , x_n}$ and values of $\beta, \sigma^2$, 
+
+$$
+\begin{aligned}
+p(y_1, \cdots, y_n \mid \mathbf{x_1, \cdots, x_n, \beta}, \sigma^2) &= \prod^n_{i = 1} p(y_i \mid \mathbf{x_i}, \beta, \sigma^2 ) \\
+&= \prod^n _{i = 1}\left(\frac{1}{2 \pi \sigma^2 }\right)^{1/2} e\left(\frac{-1}{2\sigma^2}(y_i - \beta^T\mathbf{x_i})^2\right) \\
+&=\left(\frac{1}{2 \pi \sigma^2 }\right)^{n/2} e\left(\frac{-1}{2\sigma^2}\sum^n_{i = 1}(y_i - \beta^T\mathbf{x_i})^2\right)\\
+\end{aligned}
+$$
+
+The multivariate verision of this is as follows, 
+
+Let $\mathbf{y}$ be the n-dimensional column vector $(y_1, \cdots, y_n)^T$ and let $\mathbf{X}$ be the n x p matrix whose ith row is $x_i$. Here, this means there are n observations and p variables in the design or covariate matrix. The regression model is then, 
+
+$$\mathbf{y}\mid \mathbf{X}, \mathbf{\beta}, \sigma^2 \sim MNV(\mathbf{X\beta, \sigma^2 I})$$
+
+where, $\mathbf{I}$ is the p x p identity matrix and, 
+
+$$
+\mathbf{X\beta} = \begin{pmatrix} \mathbf{x_1} \rightarrow \\
+\mathbf{x_2} \rightarrow \\
+\vdots \\
+\mathbf{x_n} \rightarrow \\
+\end{pmatrix}
+\begin{pmatrix}\beta_1\\
+\beta_2\\
+\vdots\\
+\beta_p\\
+\end{pmatrix}
+= \begin{pmatrix} \beta_1x_{1,1} + & \cdots  & + \beta_px_{1, p} \\
+ & \vdots \\
+ \beta_1x_{n, 1} + & \cdots &+ \beta_px_{n,p} \\
+\end{pmatrix}
+ = \begin{pmatrix} E[Y_1 \mid \beta, x_1] \\
+ \vdots \\ 
+ E[Y_n \mid \beta, x_n]
+ \end{pmatrix}
+$$
+
+In the multivariate case, 
+
+$$
+\begin{aligned}
+\sum^n_{i =1}(y_i - \beta^Tx_i)^2 &= (\mathbf{y} - \mathbf{X}\mathbf{\beta})^T(\mathbf{y} - \mathbf{X}\mathbf{\beta}) \\ 
+& = \mathbf{y^Ty -} 2\mathbf{X}^T\beta\mathbf{y} + \beta^T \mathbf{X}^T\mathbf{X}\beta \\
+\end{aligned}
+$$
+
+Therefore the multivariate likelihood is given by, 
+
+$$
+\begin{aligned}
+p(y_1, \cdots, y_n \mid \mathbf{x}, \beta, \sigma^2) &= \prod^n _{i =1}\left(\frac{1}{2 \pi \sigma^2}\right)^{1/2}e\left(\frac{-1}{2\sigma^2}(y_i - \mathbf{x_i}\beta^T)^2\right) \\
+& = \left(\frac{1}{2 \pi \sigma^2}\right)^{n/2}e\left(\frac{-1}{2}(\mathbf{y} - \mathbf{X\beta})^T (\sigma^2)^{-1}\mathbf{I}(\mathbf{y} - \mathbf{X\beta})\right) \\
+\end{aligned}
+$$
+
+As we can see the likelihood depends on $\beta$ through the residual term $(y_i - \beta^T x_i)$. Given the observed data, the term in the exponent is maximized when the sum of squared residuals, SSR($\beta$) = $\sum_{i = 1}^n(y_i - \beta^T x_i)^2$ is minimized. 
+
+To find the minimized value of $\beta$, we need to take the first derivitive and set it equal to zero. 
+
+Recall from calculus that (1) a minimum of a function g(z) occurs at a value of z such that $\frac{d}{dz}g(z) = 0$ and (2) the derivative of $g(z) = az$ is a and the derivative of $g(z) = bz^2$ is 2bz. These facts translate over to the multivariate case: 
+
+$$
+\begin{aligned}
+\frac{d}{d\beta}SSR(\beta) &= \frac{d}{d\beta}(\mathbf{y^Ty} - 2\mathbf{\beta^TX^Ty} + \mathbf{\beta^TX^TX\beta}) \\ 
+& = -2\mathbf{X^Ty} + 2\mathbf{X^TX\beta}, \quad \text{ therefore} \\
+\frac{d}{d\beta}SSR(\beta) = 0 &\Leftrightarrow -2\mathbf{X^Ty} + 2\mathbf{X^TX\beta} = 0 \\
+&\Leftrightarrow \beta = (\mathbf{X^TX})^{-1}\mathbf{X^Ty}
+\end{aligned}
+$$
+The values $\hat{\beta}_{ols} = (\mathbf{X^TX})^{-1}\mathbf{X^Ty}$ is called the "ordinary least squares estimate of $\beta$" as it provides the value of $\beta$ that minimizes the sum of squared residuals. \textcolor{red}{This value is unique as long as the inverse $\mathbf{X^TX}^{-1}$ exists.}
+
+##6.2 Bayesian estimation for a regression model 
+
+We begin with a simple semiconjugate prior distribution for $\beta \text{ and } \sigma^2$. 
+
+The sampling density of the data, as a function of $\beta$ is, 
+
+$$
+\begin{aligned}
+p(\mathbf{y}\mid \mathbf{X, \beta}, \sigma^2) &\propto e(\frac{-1}{2\sigma^2}SSR(\beta)) \\
+& = e(-\frac{1}{2\sigma^2}(\mathbf{y^Ty}- 2\mathbf{\beta^TX^Ty} + \mathbf{\beta^TX^TX\beta}))
+\end{aligned}
+$$
+
+If we put a MVN prior on $\beta$ we get, 
+
+$$
+\begin{aligned}
+\beta &\sim MVN(\beta_0 , \Sigma_0)\\
+p(\beta \mid \beta_0, \Sigma_0) &\propto e\left(\frac{-\Sigma_0^{-1}}{2}(\beta - \beta_0)^T(\beta- \beta_0)\right) \\
+&=e\left(\frac{-1}{2}(\beta^T\Sigma_0^{-1}\beta - \beta^T\Sigma^{-1}_0\beta_0 - \beta^T_0\Sigma_0^{-1}\beta + \beta_0^T\Sigma_0^{-1}\beta_0)\right)\\
+&\text{by collecting terms we get,}\\
+& = e\left(\frac{-1}{2}(\beta^T\Sigma_0^{-1}\beta - 2\beta^T\Sigma_0^{-1}\beta_0 - \beta_0^T\Sigma_0^{-1}\beta_0)\right) \\
+&\text{dropping terms not related to } \beta,\\
+&\propto\left(\frac{-1}{2} (\beta^T\Sigma_0^{-1}\beta - 2\beta^T\Sigma_0^{-1}\beta_0)\right)
+\end{aligned}
+$$
+
+Therefore, the posterior of $y \sim MVN(X\beta, \sigma^2)$ and $\beta \sim MVN(\beta_0, \Sigma_0^{-1})$ is derived below (note, $\sigma^2$ is not a matrix, it is a scalar quantity), 
+
+$$
+\begin{aligned}
+p(\mathbf{\beta} \mid \mathbf{y, X}, \sigma^2) &\propto p(\mathbf{y}\mid \mathbf{\beta, X}, \sigma^2). p(\beta) \\
+& \propto e\left(-\frac{1}{2\sigma^2}(\mathbf{y^Ty}- 2\mathbf{\beta^TX^Ty} + \mathbf{\beta^TX^TX\beta}\right)e\left(\frac{-1}{2} (\beta^T\Sigma_0^{-1}\beta - 2\beta^T\Sigma_0^{-1}\beta_0)\right) \\ 
+&\text{dropping terms not containing } \beta, \\
+& \propto e\left(-\frac{1}{2\sigma^2}(- 2\mathbf{\beta^TX^Ty} + \mathbf{\beta^TX^TX\beta}\right)e\left(\frac{-1}{2} (\beta^T\Sigma_0^{-1}\beta - 2\beta^T\Sigma_0^{-1}\beta_0)\right) \\ 
+&= e\left(\beta^T(\Sigma_0^{-1}\beta_0 + \mathbf{X^Ty}/\sigma^2) - \frac{1}{2}\beta^T(\Sigma_0^{-1} + \mathbf{X^TX}/\sigma^2)\beta\right)\\
+&\sim MVN((\Sigma_0^{-1} + \mathbf{X^TX/\sigma^2})^{-1}(\Sigma^{-1}_0\beta_0 + \mathbf{X^Ty}/\sigma^2), (\Sigma_0^{-1} + \mathbf{X^TX}/\sigma^2)^{-1})\\
+\end{aligned}
+$$
+In other words, 
+
+$$
+\begin{aligned}
+Var[\beta\mid \mathbf{y, X}, \sigma^2] &= (\Sigma_0^{-1} + \mathbf{X^TX}/\sigma^2)^{-1} \\ 
+E[\beta \mid \mathbf{y, X}, \sigma^2] & = (\Sigma_0^{-1} + \mathbf{X^TX/\sigma^2})^{-1}(\Sigma^{-1}_0\beta_0 + \mathbf{X^Ty}/\sigma^2)
+\end{aligned}
+$$
+Notes on interpretation: If the elements of the prior precision matrix $\Sigma_0^{-1}$ are small in magnitude, then the conditional expectation $E[\beta\mid \mathbf{y, X}, \sigma^2]$ is approximately equal to $(\mathbf{X^TX})^{-1}\mathbf{X^Ty}$, the least squares estimate. On the other hand, if the measurement (likelihood) precision is very small ($\sigma^2$ is very large), then the expectation is approximately $\beta_0$, the prior expectation. 
+
+
+To extend the model further, we can put a semiconjugate prior distribution for $\sigma^2$ as an inverse-gamma distribution. Let $\gamma = 1/\sigma^2$ be the measurement of precision, if $\gamma \sim gamma(\upsilon_0/2, \upsilon_0\sigma_0^2/2)$, then, 
+
+$$
+\begin{aligned}
+p(\gamma\mid \mathbf{y, X, \beta}) &\propto p(\gamma)p(\mathbf{y}\mid \mathbf{X, \beta}, \gamma) \\
+&\propto\left[ \gamma^{\upsilon_0/2 -1} e(-\gamma)\times \upsilon_0\sigma^2_0/2\right] \times \left[\gamma^{n/2}e(-\gamma \times SSR(\beta)/2)\right] \\
+&= \gamma^{(\upsilon_0 + n)/2 -1}e(-\gamma[\upsilon_0\sigma^2_0 + SSR(\beta)]/2)\\
+\text{Therefore, }\\
+\sigma\mid \mathbf{y, X}, \beta&\sim \text{inverse-gamma}([\upsilon_0 + n]/2, [\upsilon_0\sigma^2_0 + SSR(\beta)]/2)\\
+\end{aligned}
+$$
+
+To sample from the joint posterior distribution of $MVN(\mathbf{\beta}, \sigma^2 \mid \mathbf{X, y})$, a Gibbs sampler can be constructed using the following algorithm, 
+
+
+\begin{enumerate}
+\item{updating $\beta$:}
+\begin{enumerate}
+\item{compute $\mathbf{V} = Var{\beta\mid \mathbf{y,X}, \sigma^{2(s)}}$ and $\mathbf{m} = E[\mathbf{\beta}\mid \mathbf{y, X}, \sigma^{2(s)}]$}
+\item{sample $\beta^{(s+1)} \sim MVN(\mathbf{m, V})$}
+\end{enumerate}
+\item{updating $\sigma^2$:}
+\begin{enumerate}
+\item{compute $SSR(\beta^{(s + 1)})$}
+\item{sample $\sigma^{^2(s+1)} \sim \text{inverse-gamma}([\upsilon_0 + n]/2, [\upsilon_0\sigma^2_0 + SSR(\beta^{(s+1)})]/2)$}
+\end{enumerate}
+\end{enumerate}
+
+#7. Model Selection 
+
+\textit{from Hoff, First Course in Bayesian Statistics}
+
+One difficult aspect of regression modeling is deciding which explanatory variables to include in a model. This variable selection problem has a natural Bayesian solution: any collection of models having different sets of regressors can be compared via their Bayes factors. When the number of possible regressors is small, this allows us to assign a posterior probability to each regression model. When the number of regressors is large, the space of models can be explored with a Gibbs sampling algorithm. 
+
+Often in regression analysis, we are faced with a large number of possible regressor variables, even though we suspect that a majority of the regressors have no true relationship to Y. 
+
+If we believe that many of the regression coefficients are potentially equal to zero, then we can come up with a prior distribution that reflects this possibility. This can be accomplished by specifying that each regression coefficient has some non-zero probability of being exactly zero. 
+
+A convenient way to represent this is to write the regression coefficient for variable j as $\beta_j = z_j \times b_j$ where $z_j \in 0,1$ and $b_j$ is some real number. The regression equation becomes, 
+
+$$y_i = z_1b_1x_{i,1} + \cdots + z_pb_px_{i,p} + \epsilon_i$$
+The $z_j$'s indicate which regression coefficient are non-zero. 
+
+
+Bayesian model selection proceeds by obtaining a posterior distribution for z. Of course, doing so proceeds by obtaining a posterior distribution on $z, \beta, \sigma^2$. A version of the g-prior allows us to evaluate $p(\mathbf{y} \mid \mathbf{X, z})$ for each possible model z. Given a prior distribution p(z) over models allows us to compute a posterior probability for each regression model: 
+
+$$p(\mathbf{z} \mid \mathbf{y, X}) = \frac{p(\mathbf{z})p(\mathbf{y} \mid \mathbf{X, z})}{\sum_{\hat{z}}p(\mathbf{\hat{z}}) p(\mathbf{y \mid X, \hat{z}})}$$
+
+Althernatively, we can compare the evidence for any two models with posterior odds, 
+
+$$
+odds(\mathbf{z_a, z_b \mid y, X}) = \frac{p(\mathbf{z_a \mid y, X})}{p(\mathbf{z_b \mid y, X})} = \frac{p(\mathbf{z_a})}{p(\mathbf{z_b})} \times \frac{p(\mathbf{y \mid X, z_a})}{p(\mathbf{y \mid X, z_b})}\\
+$$
+The bayes factor $\frac{p(\mathbf{y} \mid \mathbf{X, z_a})}{p(\mathbf{y} \mid \mathbf{X, z_b})}$ can be interpreted as how much the data favor model $z_a$ over model $z_b$. To obtain a posterior distriibution over models, we have to compute $p(\mathbf{y} \mid \mathbf{Z, x})$ for each model under consideration. 
+
+The marginal probability is obtained from the integral, 
+
+$$
+\begin{aligned}
+p(y \mid X, z) &= \int \int p(y, \beta, \sigma^2 \mid X, z) d\beta d\sigma^2 \\
+&= \int \int p(y \mid \beta, X) p(\beta \mid X, z, \sigma^2) p(\sigma^2) d\beta d\sigma^2\\
+\end{aligned}
+$$
+
+Using a version of the g-prior distribution for $\beta$, we will be able to compute this integral without needing much calculus. For any given z with $p_z$ non-zero enteries, let $\mathbf{X_z}$ be n x p matrix corresponding to the variables j for which $z_j =1$ and similarly let $\beta_z$ bethe p x 1 vector consisting of entries for $\beta$ for which $z_j = 1$. Similarly for $z_j = 0$. 
+
+$$\beta_j \mid X_z, \sigma^2 \sim MVN(0, g \sigma^2[X_z^TX_z]^{-1})$$
+
+If we integrate w.r.t $\beta$ we have, 
+
+$$
+\begin{aligned}
+p(y \mid X, z) &= \int \left(\int p(y \mid X, z, \sigma^2, \beta) p(\beta \mid X, z, \sigma^2) d\beta\right) p(\sigma^2)d\sigma^2\\
+&=\int p(y \mid X, z, \sigma^2)p(\sigma^2) d \sigma^2\\
+\end{aligned}
+$$
+
+Let $\gamma = \sigma^2$ with $p(\gamma) \sim gamma(\upsilon_0/2, \upsilon_0\sigma^2_0/2)$ Then, 
+
+
+
+\newpage 
+
+#Appendix 
+##1A. Stuff Shubhi forgets 
+Exponential rules, calculus rules, integration rules, algebric rules, functions, finding unique solutions
+
+###1.A.i Note on expectation 
+
+The expected value of a random variable is the arithmetic mean of that variable i.e. $E(X) = \mu$. The idea of the expectation of a random variable began with probability theory in games of chance. Gamblers wanted to know their expected long-run winnings (or losings) if they played a game repeatedly. This term has been retained in mathematical statistics to mean the long run average for any random variable over an indefinite number of trials or samples. 
+
+In the discrete case, 
+
+$$E(X) = \sum\limits_X x p(x) = \mu_x$$
+
+In the continuous case, 
+
+$$E(X) = \int\limits_{-\infty}^\infty xf(x)dx = \mu_x$$
+The variance of a random variable X is defined as the expected (average) squared deviation of the values of this random variables about their mean. That is, 
+
+$$V(X) = E[(X-\mu)^2] = E(X^2) - \mu^2 =\sigma^2_x$$
+
+
+**Expectation rules**
+
+1. $E(X) = \mu_x = \sum x.p(x)$ in discrete case 
+
+2. $E(g(X)) = \sum g(x).p(x) = \mu_{g(X)}$ in the discrete case where g(X) is some function of X. 
+
+3. $Var(X) = E[(X-E(X))^2] = E(X^2) - E(X)^2 = \sigma^2_X$
+
+4. $E(a) = a$ i.e. expectation of a constant is the constant
+
+5. $E(aX) = aE(X)$ e.g. if you multiply every value by 2, the expectation doubles
+
+6. $E(a \pm X) = a \pm E(X)$
+
+7. $E(X + Y) = E(X) + E(Y)$ i.e. the expectation of a sum is equal to the sum of expectations
+
+8. $V(a \pm X) = V(X)$ i.e. adding a constant to a variable does not change its variance. 
+
+9. $V(a\pm bX) = b^2 + V(X)$
+
+10. If X and Y are independent, $V(X \pm Y) = V(X) + V(Y)$
+
+11. It is generally not true that $V(XY) = V(X)V(Y)$ 
+
+
+##1.A.ii Calculus review 
+
+##1.A.iii Note on functions
+
+**What is the indicator function?**
+The indicator function or the characteristic function is a function defined on a set X that indicates membership of an element in a sub-set A of X, having the value 1 for all elements of A and the value 0 for all elements of X not in A. It is usually denoted by a symbol 1 or I. 
+
+Properities- If X is a probability space with probability measure **P** and A is a measurable set, the $\textbf{I}_A$ becomes a random variable whose expected value is equal to the probability of A: 
+
+$$E[\textbf{I}_A] = \int\limits_X\textbf{I}_A(x)d\textbf{P} = \int\limits_Ad\textbf{P} = P(A)$$
+##1.A.iv Note on change of variables 
+
+Let X be a continuous random variable with a generic p.d.f $f(x)$ defined over the support $c_1 < x < c_2$. And, let $Y = u(X)$ be a continuous, increasing function of X with the inverse function $X = v(Y)$. If you put an x-value such as $c_1$ and $c_2$ into the function $Y = u(X)$, you get a y-value such as $u(c_1)$ or $u(c_2)$. But, because the function is continuous and increasing, an inverse function $X = v(Y)$ exists. In that case, if you put a y-value into the function, you get an x value, such as $v(y)$. 
+
+Derive the distribution of Y (note, $F_Y(y)$ is the CDF). It is: 
+
+$$F_Y(y) = P(Y \leq y) = P(u(X) \leq y) = P(X \leq v(y)) = \int\limits^{v(y)}_{c_1}f(x) dx$$
+for $d_1 = u(c_1) < y < u(c_2) = d_2$. The first equality holds from the definition of the cumulative distribution function of Y. The second equality holds because $Y = u(X)$. The third equality holds because for the portion of the function for which $u(X) \leq y$, it is also true that $X \leq v(Y)$. And the last equality holds from the definition of probability for a continuous random variable X. Now, we need to take the derivative of $F_Y(y)$, the cumulative distribution function of Y, to get $f_Y(y)$, the probability density function of Y. 
+
+The Fundamental Theorem of Calculus, in conjuction with the chain rule, tells us that the derivative is 
+$$f_Y(y) = F_Y'(y) = f_x(v(y)) . v'(y)$$
+for $d_1 = u(c_1) < y < u(c_2) = d_2$
+
+(Note: The fundamental theorem of calculus states that if f is a continuous function and is defined by, $F(x) = \int\limits_x^a f(t) dt$), then, $F'(x) = f(x)$. 
+
+Change of variables can also be applied to decreasing functions- 
+Let X be a continuous random variable for a generic p.d.f $f(x)$ defined over the support $c_1 < x < c_2$. And, let $Y = c(X)$ be a continuous, decreasing function of X with inverse function $X = v(Y)$. 
+
+The distribution function of Y is then: 
+$$F_Y(y) = P(Y \leq y) = P(u(X) \leq y) = P(X \geq v(y)) = 1 - P(X \leq v(y)) = 1 - \int\limits^{v(y)}_{c_1} f(x)dx$$
+
+for $d_2 = u(c_2) < y < u(c_1) = d_1$. The first equality holds because this is the definition of the cumulative distribution function of Y. The second equality holds because $Y = u(X)$. The third equality holds because for the portion of the function for which $u(X) \leq y$, it is also true that $X \geq v(Y)$. 
+
+Therefore, in general,
+
+$$f_Y(y)= f_X(v(y)) . \mid v' (y) \mid$$
+
+defined over the support $u(c_1) < y < u(c_2)$.
+
+
+###1.A.v Note on linear algebra 
