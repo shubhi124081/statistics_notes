@@ -1,0 +1,1946 @@
+---
+title: "Hierarchical modeling notes"
+author: "Shubhi Sharma"
+date: "9/2/2019"
+output: pdf_document
+editor_options: 
+  chunk_output_type: inline
+toc: true
+header-includes: 
+- \usepackage{placeins}
+- \usepackage{color}
+- \usepackage{amsmath}
+in_header: custom2.tex
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+require(lme4)
+require(brms)
+require(tidybayes)
+require(tidyverse)
+require(dplyr)
+require(ggplot2)
+require(MASS)
+require(boot)
+require(ggthemes)
+require(purrr)
+require(ggrepel)
+require(broom)
+```
+
+#1. Linear Algebra Review 
+
+#2. Introduction to hierarchical modeling
+
+#3. Analysis of variance
+
+##3.1 Introduction to ANOVA
+
+Analysis of variance (ANOVA) refers to a specific set of methods for data analysis and to a way of summarizing multilevel models. In classical statistics, ANOVAs generally refer to either a family of additive data decomposition or to a method of testing the statistical significance of added predictors in a linear model. 
+
+As a tool for data analysis, ANOVA is typically used to learn the relative importance of different sources of variation in a dataset. In classical statistics, ANOVA refers either to a family of additive data decompositions, or to a mehtod of testing the statistical significance of added predictors in a linear model. If a multilevel model has already been fit, it can be summarixed by the variation in each of its batches of coefficients. 
+
+A model with treatment effects and categories may be specified as the following, 
+
+$$y_i =  \mu + \gamma_{j[i]} + \delta_{k[i]} + \epsilon_i$$
+or equivalently, 
+
+$$y_{jk} = \mu + \gamma_j + \delta_k + \epsilon_{jk}$$
+where i indexes the number of observations, j indexes the different treatment effects and k indexes categories. 
+
+```{r}
+#An example of anova code 
+#summary(aov(y ~ factor(treatment) + factor(category)))
+```
+
+In this case, the residuals are equivalent to the treatment x categories interactions. 
+
+\textit{Explaining the output of an ANOVA table}
+
+\textit{Sources of variation and degrees of freedom}. Degrees of freedom are defined as the number of coefficients in that group, minus the number of constraints required for the coefficients to be identifiable in a classical regression. 
+
+\textit{Sums of squares}. Sums of squares are derived from the classical coefficient estimates. Thus, the sums of squares for treatments, categories and residuals are $\sum_i^{n} \hat{\gamma_{j[i]}}^2$, $\sum_i^{n} \hat{\lambda_{j[i]}}^2$ and $\sum_i^{n} \hat{\epsilon_{j[i]}}^2$. If the data are balanced, the sums of squares in the table add up to the "total sum of squares" of the data $\sum_i^n(y_i - \hat{\mu})^2$. Roughly speaking, in a balanced design there are the same number of observations in each row and each column of the data. 
+
+\textit{Mean squares, F ratios, and p-values}. For each source of variation in the ANOVA table, the mean square is defined as the sum of squares divided by the degrees of freedom. The ratios of the mean squares are called the F statistics, and the usual goal of classical ANOVA is to find F-ratios that are significantly greater than 1. The p-values in an ANOVA table indicate the statistical signficance of the F-tests. 
+
+(Model selection nested ANOVAs)
+
+##3.2 ANOVA and multilevel linear and generalized linear models 
+
+When moving to multilevel modeling, the key idea we want to take from ANOVA is the estimation of the importance of different batches of predictors ("components of variation"). In general, the goal is estimation rather than testing. ANOVA applied to linear regression models have the following set up, 
+
+$$y_i = \sum_{m=0}^M\sum_{j=1}^{J_m} X_{ij}^{(m)} \beta_j^{(m)} $$
+Note that the essence of analysis of variance is in the structuring of the coefficients into batches - hence the notation $\beta_j^{(m)}$ - going beyond the usual linear model formulation that has a single indexing of coefficients $\beta_j$. 
+
+Each batch of regression coefficients is assumed to be a sample from a normal distribution with mean 0 and population standard deviation $\sigma_m$, 
+
+$$\beta_j^{(m)}\sim N(0, \sigma^2_m)$$
+The mean of 0 for each batch of regression coefficients comes naturally from the ANOVA decomposition structure (pulling out the grand mean, main effects, interactions and so forth), the standard deviations represent the magnitudes of the variance components corresponding to each row of the table. 
+
+#3.2 One-way ANOVA model 
+
+Consider a model of the form, 
+
+$$
+\begin{aligned}
+1. y_{i,j} &= \mu + \alpha_j + \epsilon_{i,j}\\
+2. y_{i,j} &= \mu_j + \epsilon_{i,j}\\
+\end{aligned}
+$$
+where $\mu_j = \mu + \alpha_j$, (1) is the treatment effects model and (2) is the treatment means model. These two models are just reparameterizations of each other. In this model $\mu_j$ represents expected mean from group i, $\mu$ represents expected mean across all groups, $\alpha_j$ represents deviation of the region specific expected yield from the overall expectation and finally, $\epsilon_{i,j}$ represents deviations of the observed plot yield from their region specific expectations. 
+
+For these terms to be interpretable, the standard ANOVA model parameterizes things so that 
+
+$$
+\begin{aligned}
+1. \sum_j \alpha_j &= 0 \\
+2. \{\epsilon_{i,j}\} &\sim p(\epsilon) \\
+\end{aligned}
+$$
+
+
+The expected yield for an individual in group j is, 
+
+$$\mathbb{E}[y_{ij} \mid \mu, \alpha_1, \cdots, \alpha_m] = \mathbb{E}[\mu + \alpha_j + \epsilon_{ij}\mid \mu, \alpha_1, \cdots, \alpha_m] = \mu + \alpha_j = \mu_j$$
+
+##3.2.1 Parameter estimation 
+
+The ordinary least squares estimate of $\pmb{\mu}$ is the value that minimizes the sum of squared residuals i.e. the sum o fthe squared errors in the model fit. Recall the OLS derivation, 
+
+An OLS estimates of $\pmb{\hat{\mu}}$ contains the estimates of the group means $\pmb{\hat{\mu}} = \{\hat{\mu_1}, \cdots, \hat{\mu_M}\}$ where M is the total number of groups. Considering just one group mean $\hat{\mu_j}$, 
+
+The OLS estimate of the group mean is the estimate that minimizes the sum of squared error, 
+$$SSE(\hat{\mu_j}) = \sum_i^N(y_{i,j} - \hat{\mu_j})^2$$
+
+Taking the derivative of $SSE(\hat{\mu_j})$, 
+
+$$
+\begin{aligned}
+\frac{\partial}{\partial \mu_j} SSE(\hat{\mu_j}) &= \frac{\partial}{\partial{\mu_j}} \sum_i^N (y_{i,j} - \hat{\mu_j})^2 \\ 
+&= \frac{\partial}{\partial \mu_j}\sum_i^N (y_{i,j}^2 - 2y_{i,j} \hat{\mu_j} + \hat{\mu_j}^2)\\
+&= \sum_i^N(0 - 2y_{ij}+ 2\hat{\mu_j})\\
+\text{setting the derivative to 0, }\\
+-2\sum_i^N (y_{i,j}  - \hat{\mu}) &= 0 \\ 
+\sum_i^N (y_{i,j})  - \sum_i^N\hat{\mu_j} &= 0\\ 
+\text{Since  } n_j = N, \text{we can write }\sum_i^Ny_{i,j} = N\bar{y_j}, \\
+N\bar{y_j} &= N\hat{\mu_j}\\ 
+\text{Multiplying both sides by }&\frac{1}{N}, \\
+\bar{y_j} &= \hat{\mu_j} \
+\end{aligned}
+$$
+
+Therefore the vector of OLS means $\pmb{\mu_{OLS}}$ will contain $(\bar{y_1}, \cdots, \bar{y_m})$
+
+
+\textbf{B: Using the scalar formulation of the ANOVA model $\pmb{y_{ij} \sim N(\mu + \alpha_j, \sigma^2)}$ with the constraint $\pmb{\sum_j \alpha_j = 0}$, assume $\pmb{n_j = n}$ and show}
+\textbf{i. $\pmb{\hat{\mu} = \bar{y_{..}}}$ is the grand mean over all observations}
+
+
+The OLS estimate for $\pmb{\hat{\mu}}$ minimizes the sum of squared errors, 
+
+$$SSE(\hat{\mu})  = \sum_j^M\sum_i^N(y_{i,j} - \hat{\mu_j})^2$$
+
+
+where, $\hat{\mu_j} = \hat{\mu} + \hat{\alpha_j}$ 
+$$
+\begin{aligned}
+SSE(\hat{\mu}) &= \sum_j^M \sum_i^N(y_{i,j} - \hat{\mu} - \hat{\alpha_j})^2 \\ 
+\text{Taking a partial derivative wrt } \hat{\mu_j}\\ 
+\frac{\partial}{\partial\hat{\mu}}SSE(\hat{\mu}) &= -2\sum_j^M \sum_i^N(y_{i,j} - \hat{\mu} - \hat{\alpha_j})\\
+\text{Setting the derivative =0, }\\ 
+-2\sum_j^M\sum_i^N(y_{i,j} - \hat{\mu} - \hat{\alpha_j}) &= 0\\
+\sum_j^M\sum_i^N(y_{i,j} - \hat{\mu} - \hat{\alpha_j}) &= 0\\
+\sum_j^M (\sum_i^Ny_{ij} -\sum_i^N\hat{\mu} - \sum_i^N\hat{\alpha_j}) &=0\\
+\text{Since } n_j = N, \text{ we can write } \sum_i^Ny_{ij} = N\bar{y_j} \\
+\sum_j^M((N\bar{y_j}) - N\hat{\mu} - N\hat{\alpha_j}) &= 0\\
+\text{Multiplying every term by } \frac{1}{N},\\
+\sum_j^M(\bar{y_j} - \hat{\mu} - \hat{\alpha_j}) &= 0\\
+\sum_j^M(\bar{y_j}) - \sum_j^M\hat{\mu} - \sum_j^M\hat{\alpha_j} &= 0\\
+\text{Using } \sum_j^M \hat{\alpha_j} = 0, \\
+ M\bar{y_{..}} - M\hat{\mu} - 0 &= 0 \\
+ M \bar{y_{..}} &= M\hat{\mu}\\
+\text{Therefore, }\\
+\hat{\mu} &= \bar{y_{..}}
+\end{aligned}
+$$
+
+where M represents the number of groups, i.e $j = \{1, \cdots, M\}$
+
+\textbf{ii. Show $\pmb{\hat{\mu} = \frac{1}{J}\sum_j\hat{\mu_j}}$}
+
+From the given model specification, we know that $\mu_j = \mu + \alpha_j$
+
+$$
+\begin{aligned}
+\text{Taking RHS of equation ii, }\\
+\frac{1}{J}\sum_j\hat{\mu_j} &= \frac{1}{J}\sum_j(\hat{\mu} + \hat{\alpha_j})\\
+&= \frac{1}{J}(\sum_j\hat{\mu} + \sum_j\hat{\alpha_j})\\
+&= \frac{1}{J}(J\hat{\mu}) + 0 \qquad \qquad \qquad \text{- since } \sum_j\hat{\alpha_j} = 0\\
+&= \hat{\mu}
+\end{aligned}
+$$
+
+Since LHS = RHS, we have $\hat{\mu} = \frac{1}{J}\sum_j \hat{\mu_j}$. 
+
+\textbf{iii. Show $\pmb{\hat{\alpha_j}=\hat{\mu_j} - \hat{\mu}= \bar{y_j} - \bar{y_{..}}}$}
+
+In order to show that $\hat{\alpha_j} = \hat{\mu_j} - \hat{\mu}= \bar{y_j} - \bar{y_{..}}$, we have to first show that $\hat{\mu_j} = \bar{y_j}$
+
+The OLS estimator for $\mu_j$ would minimize $SSE(\mu_j)$,
+$$
+\begin{aligned}
+\frac{\partial}{\partial\mu_j}SSE(\hat{\mu_j}) &= \frac{\partial}{\partial\mu_j}\sum_i^N(y_{ij} - \hat{\mu_j})^2\\
+\text{Setting the derivative to zero, }\\
+\frac{\partial}{\partial\mu_j}\sum_i^N(y_{ij} - \hat{\mu_j})^2 &= 0\\
+2\sum_i^N(y_{ij} - \hat{\mu_j}) &= 0\\
+\sum_i^N(y_{ij}) - \sum_i^N\hat{\mu_j} &= 0\\
+\text{Since } n_j = N, \\
+N\hat{\mu_j} &= N\bar{y_j}\\
+\text{Multiplying both sides with }\frac{1}{N}, \\
+\hat{\mu_j} &= \bar{y_j}\\
+\end{aligned}
+$$
+
+Basically, a single data point can be "decomposed" in the following way, 
+
+$$
+\begin{aligned}
+y_{ij} &= \bar{y_{..}} + (\bar{y_{.j}} - \bar{y_{..}}) + (y_{ij} - \bar{y_{.j}})\\
+& \qquad \hat{\mu} + \qquad \hat{\alpha_j} \quad + \quad\hat{\epsilon_{i,j}}\\
+\end{aligned}
+$$
+
+\textbf{Testing for across group variation}
+
+The primary use of the ANOVA table is to evaluate if there are any group effects, i.e. to evaluate the competing hypotheses
+
+$H_0: \mu_{j_1} = \mu_{j_2}$ for all $j_1, j_2$ versus $H_1: \mu_{j_1} \neq \mu_{j_2}$ for some $j_1, j_2$. 
+
+The ANOVA table does this by comparing across-group variation to within group variation via the F statistic = MSG/MSE. 
+
+If $H_0$ is true $MSE \approx \sigma^2$ and $MSG \approx \sigma^2$. If $H_1$ is true, $MSE \approx \sigma^2$ and $MSG \approx \sigma^2 + ns^2_a > \sigma^2$. 
+
+Basically MSG/MSE should be around 1 under null hypothesis and under the alternate hypothesis, MSG/MSE should be bigger than 1. 
+
+The ANOVA model tells us something about variability within each of the m regions and the variability across these m regions.  A model for across group heterogeneity is provided by the hierarchical normal model,
+
+$$
+\begin{aligned}
+y_{i,j} &= \mu + \alpha_j + \epsilon_{i,j}\\
+\alpha_1, \cdots, \alpha_m &\sim N(0, \tau^2)\\
+\epsilon_{i,j} &\sim N(0, \sigma^2)\\
+\end{aligned}
+$$
+
+$\alpha_1, \cdots, \alpha_m$ and $\epsilon_{ij}$ represent differences in observations across groups and within groups, respectively. 
+
+What is expectation, covariance and variance under this model? 
+
+Expectation
+$$
+\begin{aligned}
+\mathbb{E}[y_{i,j}] &= \mathbb{E}[\mu + \alpha_j + \epsilon_{ij}]\\
+&= \mu + 0 + 0 \\
+\mathbb{E}[y_{i,j}]&= \mu\\
+\end{aligned}
+$$
+
+Variance 
+
+$$
+\begin{aligned}
+Var[y_{ij}] &= \mathbb{E}[(y_{ij} - \mathbb{E}[y_{ij}]^2]\\
+&= \mathbb{E}[(y_{ij} - \mu)^2]\\
+&= \mathbb{E}[(\mu + \alpha_j + \epsilon_{ij} - \mu)^2]\\
+&= \mathbb{E}[(\alpha_j + \epsilon_{ij})^2]\\
+&= \mathbb{E}[\alpha_j^2] + \mathbb{E}[2\alpha_j\epsilon_{ij}] + \mathbb{E}[\epsilon_{ij}^2]\\
+&= \tau^2 +  2\times 0\times 0 + \sigma^2\\
+Var[y_{ij}]&= \tau^2 + \sigma^2\\
+\end{aligned}
+$$
+
+Covariance for two data points in the different groups
+
+$$
+\begin{aligned}
+Cov[y_{ij}, y_{i^\prime, j^\prime}] &= \mathbb{E}[(y_{ij} - \mathbb{E}[y_{ij}])(y_{i^\prime j^\prime} - \mathbb{E}[y_{i^\prime, j^\prime}])]\\
+&=\mathbb{E}[(y_{ij} - \mu)(y_{i^\prime j^\prime} - \mu)]\\
+&= \mathbb{E}[y_{ij}y_{i^\prime j^\prime} - y_{ij}\mu  - y_{i^\prime j^\prime}\mu + \mu^2]\\
+&= \mathbb[y_{ij}y_{i^\prime j^\prime} ] - \mu^2 - \mu^2 + \mu^2\\
+&= \mu^2 - \mu^2 - \mu^2 + \mu^2\\
+&= 0
+\end{aligned}
+$$
+
+
+Covariance for two data points in the same group 
+
+$$
+\begin{aligned}
+Cov[y_{ij}, y_{i^\prime, j}] &= \mathbb{E}[(y_{ij} - \mathbb{E}[y_{ij}])(y_{i^\prime j } - \mathbb{E[y_{i^\prime j}]})]\\
+&= \mathbb{E}[(y_{ij} - \mu)(y_{i^\prime j} - \mu)]\\
+&= \mathbb{E}[(\mu + \alpha_j + \epsilon_{ij} - \mu)(\mu + \alpha_j + \epsilon_{i^\prime j} - \mu)]\\
+&= \tau^2
+\end{aligned}
+$$
+
+In matrix formulation
+
+Expectation 
+$$
+\begin{aligned}
+\mathbb{E}[\mathbf{y}_j] &= \mathbb{E}[\mathbf{X_j \beta + X_jb_j + \epsilon_j}]\\
+&= \mathbf{X_j \beta} + X_j0 + 0\\
+&= \mathbf{X_j \beta}\\
+\end{aligned}
+$$
+
+Covariance
+
+
+#4. Estimation
+
+#5. Bayesian methods
+
+#6. Summary on ANOVA models
+
+
+#7. Multilevel Linear Models: Introduction
+
+##7.1 Types of multilevel models  
+
+*Notes from Gelman and Hill (2006), Chapter 11*
+
+Multilevel models are extensions of regression in which data are structured in groups and coefficients can vary by group. 
+
+With grouped data, a regression that includes indicators for groups is called a **varying-intercept model** becuase it can be interpreted as a model with a different intercept within each group. This model can be written with indicators, 
+
+$$
+Y_{j[i]} = \mathbb{I}_{j = 1}\alpha_1 + \mathbb{I}_{j = 2}\alpha_2 + \mathbb{I}_{j = 3}\alpha_3 + \mathbb{I}_{j = 4}\alpha_4 + \mathbb{I}_{j = 5}\alpha_5 +\beta X_{j[i]} + \epsilon_{j[i]}
+$$
+or more succinctly, 
+
+$$
+Y_{i} = \alpha_{j[i]} + \beta X_{i} + \epsilon_{i}
+$$
+
+Another option for multilevel modelling is the **varying-slope model** in which just the slope varies by group and the intercept is kept constant. 
+
+$$
+Y_{i} = \alpha + \beta_{j[i]} X_{i} + \epsilon_{i}
+$$
+
+Finally, the last mode in multilevl modelling is **varying-slope, varying-intercept model** in which both the slope and intercept can vary by group,
+
+$$
+Y_i = \alpha_{j[i]} + \beta_{j[i]}X_i + \epsilon_i
+$$
+The varying slopes are interactions between the continuous predictor X and the group indicators. 
+
+##7.2 Clustered data structure 
+
+With multilevel modeling, we go beyond the classical set up of a data vector y and a matrix of predictors X. Each level of the model can have its own matrix of predictors. Practically, the two-matrix level format (where the data frame for each level is stored separately), has the advantage of showing which information is available on an individual level and on a group level clearly. It also does not repeat group level information at the city level therefore removing redundancy from computer memory. 
+
+##7.3 Experiment design
+
+###7.3.1 Repeated measures 
+Another kind of multilevel data structure involves repeated measurements on units- thus measurements are clustered within units and predictors can be available at the measurement or unit level. 
+
+###7.3.2 Time series cross sectional data 
+In settings where overall time trends are important, repeated measurement data are sometimes called time series cross sectional. 
+
+###7.3.3 Non-nested strucutres
+Non-nested data also arise when individuals are characterized by overlapping categories of attributes. For example, consider a study of earnings given occupation and state of residence. The data could include 1500 persons, 40 job categories and 50 states.
+
+The log earnings model for a given individual would include demographic predictors X, 40 indicators for job categories, and 50 state indicators. We can write the model generalizing notation as, 
+
+$$
+\begin{aligned}
+y_i &= X_i \beta + \alpha_{j[i]} + \gamma_{k[i]} +\epsilon_i\\
+\alpha_j &\sim N(U_j a, \sigma^2_\alpha)\\
+\gamma_k &\sim N(V_kg, \sigma^2_\gamma)\\
+\end{aligned}
+$$
+where $j[i]$ and $k[i]$ represent the job category and state, respectively, for person i. The model becomes multilevel with regressions for the job and state coefficients. U is a matrix of $\alpha$ group level predictors, a is a vector of coefficients for the $\alpha$ level predictors and $\sigma_a$ is the standard deviation of the model errors for this level. Similarly, $V_k$ is the matrix of predictors for level $\gamma$, g is the vector of coefficients for $\gamma$ level predictors and $\sigma_\gamma$ is the standard deviation of the mdoel errors at this level. 
+
+If groups with $\gamma$ and $\alpha$ don't overlap, the data is non-nested. 
+
+The varying coefficients in a multilevel model are sometimes called **random effects**
+, a term that refers to the randomness in the probability model for the group-level coefficients. The term fixed effect is used in contrast to random effects. **Fixed effects** are usually defined as varying coefficients that are not themselves modeled. 
+
+#8. Multilevel modeling: Basics 
+
+
+*Notes from Gelman and Hill (2006), Chpater 12*
+
+Multilevel modeling can be thought of in two ways
+
+\begin{itemize}
+\item{A generalization of linear regression, where intercepts, and possibly slopes are allowed to vary by group. For example, starting with a regression with one predictor, $y_i = \alpha + \beta x_i + \epsilon_i$, we can generalize to the varying-intercept model, $y_i = \alpha_{j[i]} + \beta x_{i} + \epsilon_i$ and a varying-intercept and varying-slope model with $y_i = \alpha_{j[i]} + \beta x_{j[i]} + \epsilon_i$}
+\item{Equivalently, we can think of multilevel modeling as a regression that includes a categorical input variable representing group membership. From this perspective, the group index is a factor with J levels, corresponding to J predictors in the regression model.}
+\end{itemize}
+
+In either case, J-1 linear predictors are added to the model (in other words, a constant term in the regression is replaced by J separate intercept terms). The crucial multilevel modeling step is that these J coefficients are then themselves given a model (most simple, a common distribution for the J parameters $\alpha_j$ or generally, a regression model for the $\alpha_j$'2 given group level predictors).The group level model is estiamted simultaneously with the data level regression of y. 
+
+Multilevel modeling can be characterized as a compromise between two extremes: *complete pooling*, in which the group indicators are not included in the model and *no pooling* in which separate models are fit within each group. 
+
+\textbf{Note on notation}
+
+\begin{itemize}
+\item{Units $i = 1, \cdots, n$, the smallest items of measurement e.g. individuals}
+\item{Outcome measurements $y = (y_1, \cdots, y_n)$, response variable}
+\item{Regression predictors are represented by a $n \times k$ matrix X, so that the vector of predicted values is $\hat{y} = X\beta$, where $\hat{y}$ and $\beta$ are column vectors of length n and k respectively. We include in X the constant term so that the first column of X is a 1's (to include an intercept term). Coefficients are labelled $\beta_0, \cdots, \beta_{k-1}$ or $\beta_1, \cdots, \beta_k$}
+\end{itemize}
+
+
+The two extremes in multilevel modeling are *complete pooling*, in which the group indicators are not included in the model and *no pooling*, in which separate models are fit within each group. A compromise between these two extremes is partial-pooling. The form of a partial pooling estimate is, 
+
+$$
+\hat{\alpha}_j^{multilevel} \approx \frac{\frac{n_l}{\sigma^2_y}\bar{y}_j + \frac{1}{\sigma^2_\alpha}\bar{y}_{all}}{\frac{n_j}{\sigma^2_y} + \frac{1}{\sigma^2_\alpha}}
+$$
+
+
+The simplest multilevel model is a varying-intercept model written as 
+
+$$y_i \sim N(\alpha_{j[i]} + \beta x_i, \sigma_y^2)$$
+
+In the complete pooling case, $\alpha_j$'s are given a "hard" constraint- they are all fixed at a common $\alpha$. In the multilevel model, a "soft constraint" is applied to the $\alpha_j$'s. They are assigned a probability distribution, 
+
+$$\alpha_j \sim N(\mu_\alpha, \sigma^2_\alpha)$$ 
+
+for $j =  1, \cdots, J$, 
+with their mean at $\mu_\alpha$ and standard deviation $\sigma_\alpha$ estimated from the data. \textcolor{red}{This would not be the case in Bayesian settings- the $\alpha$'s would come from a prior distribution, not constructed from the data unless it was an empirical bayesian setting right?}. 
+
+The distribution has the effect of pulling the estimates of $\alpha_j$ toward the mean level $\mu_\alpha$, but not all the way, thus in each county, a partial pooling compromise between the two estimates. In the limit of $\sigma_\alpha \rightarrow \infty$, the soft constraints do nothing, and there is no pooling, as $\sigma_\alpha \rightarrow 0$, they pull the estimates all the way to zero, yielding the complete pooling estimate. In other words, in complete pooling models, $\alpha_j$s are given a hard constraint, they are all fixed at a common $\alpha$. 
+
+
+One way to interpret variation between levels is to consider the variance ratio $\sigma_\alpha^2/ \sigma^2_y$. Let this ratio approximate to one-fifth. This means the standard deviation of y between groups is the same as the standard deviation of the average 5 measurements within a group. The relative values of individual- and group-level variances are also sometimes expressed using the interclass correlation $\sigma^2_\alpha / (\sigma^2_\alpha + \sigma^2_y)$, which ranges from 0 if the grouping conveys no information to 1 if all group members are identical. Further, for a group sample size less than 5, there is more information in the group-level model than in the group's data; for a group with more than 5 observations, the within-group measurements are more informative. In summary, the multilevel regression line in a group is closer to complete-pooling estimate with the sample size is less than 5, and closer to no-pooling estimate with sample size exceeds 5. 
+
+Note: The term "fixed effects" is used for regression coefficients that do not vary by group or for group-level coefficients or group averages (such as the average intercept $\mu_\alpha$). 
+
+
+\textcolor{red}{ORTHODONTICS DATA EXAMPLE}
+
+#11. Dependent Data 
+
+*Notes from Chapter 8, Bayesian and Frequentist Regression Methods*
+
+Dependent data occur in common situations such as when sampling is over time, space or within groups/families. Generally, this considers regression modeling situations in which there are a set of units ("clusters") upon which multiple measurements have been collected. When data are available over time for a group of units, we have *longitudinal* data, and each unit (i.e. individual) forms a cluster. 
+In the context of mixed effect models, "marginal" refers to an averaging of data across the group. It is on the other extreme of having a distinct curve for each group or unit. 
+
+Refering to the same orthodontics data example, with the marginal approach, our model is, 
+
+$$\mathbb{E}[Y_{ij}] = \beta_0^M + \beta_1^Mt_j$$
+where $\beta_0^M$ and $\beta_1^M$ represent marginal intercept and slope parameters. Then, 
+
+$$e^M_{ij} = Y_{ij} - \beta_0^M - \beta_1^Mt_j$$
+where i indexes the child and j indexes the time steps. In this data, $i = 1, \cdots, 11$ and $j = 1, \cdots, 4$. 
+
+
+Due to the dependence of observations on the same girl, we would not expect the marginal residuals to be independent. To take into account the depedence, data are modeled so that the off-diagonals in the covariance is non-zero and is given some amount of correlation $\rho_{ij}$. Diagonals are standard deviations. 
+
+$$\sigma_j = \sqrt{\text{var}(e_{ij}^M)}$$ 
+This is the standard deviation of the dental length at time $t_j$ and, 
+
+$$\rho_{jk} = \frac{\text{cov}(e_{ij}^M, e_{ik}^M)}{\sqrt{\text{var}(e_{ij}^M)\text{var}(e_{ik}^M)}}$$
+is the correlation between residual measurements taken at time $t_j$ and $t_k$ on the same individual. This is accounting for the dependence between observations on the same individual as we would expect observations arising from the same individual to be more similar than observations from different individuals. 
+
+The basis of using a mixed effects model for longitudinal data is to assume that a unit (or individual) specific set of random effects are assumed to arise from a population. 
+
+In different contexts, random effects may have a direct interpretation as arising from a population of effects or may simply be viewed as a convenient modeling tool, in situations in which there is no hypothetical population of effects to appeal to. 
+
+## Writing models in R 
+
+A complete pooling model would be written as 
+
+```{r, echo = TRUE, eval = FALSE}
+completePool <- lm(y ~ x)
+```
+
+A no-pooling model would be written as 
+
+```{r, echo = TRUE, eval = FALSE}
+noPool <- lm(y ~ x + factor(group))
+```
+
+A partial pooling model would be written as 
+
+```{r, echo = TRUE, eval = FALSE}
+partialPool <- lmer(y ~ x + (1 | group))
+
+partialPool2 <- lmer(y ~ 1 + (1 | group)) #no predictors, just varying intercepts. 
+```
+
+
+## 5 ways to write the same model 
+
+\textit{Allowing regression coefficients to vary across groups}
+Classical regression model for all the data, 
+
+$$
+y_i = \beta_0 + \beta_1X_{i1} + \beta_2X_{i2} + \cdots + \epsilon_i
+$$
+
+Generalizing the model to allow coefficients $\beta$ to vary across groups, 
+
+$$
+y_i = \beta_{0 j[i]} + \beta_{1 j[i]} X_{i1} + \beta_{2j[i]}X_{i2} + \cdots + \epsilon_i
+$$
+
+This involves assigning a multivariate distribution to the vector of $\beta$'s within each group. 
+
+Varying intercept models where the only coefficient that varies across groups is the constant term $\beta_0$, 
+
+$$
+y_i = \beta_{0j[i]} + \beta_1X_{i1} + \beta_2X_{i2} + \epsilon_i
+$$
+where, 
+$$\beta_{0j} \sim N(\mu, \sigma^2)$$
+where $$\beta_{0j} = \mu + \eta_j$$
+with $$\eta_j \sim N(0, \sigma^2)$$
+
+\textit{Combining separate local regressions}
+An alternative way to write the multilevel model is as a linking of local regressions in each group. Within each group j, a regression is performed on the local predictors, with a constant term $\beta_0$ that is indexed by group, 
+In group j, 
+$$
+y_i \sim N(\beta_{0j} + \beta x_i, \sigma^2_y)
+$$
+Then group level predictors are included as group level predictors for the second level of the model, 
+
+$$
+\beta_{0j} \sim N(\gamma_0 + \gamma_1 \mu_j, \sigma^2)
+$$
+This multilevel model combines the J local regression models in two ways: first the local regression coefficients $\beta$ are the same in all J models, second the different intercepts $\alpha_j$ are connected through the group level model.
+
+\textit{Modeling the coefficients of a large regression model}
+The identical model can be writted as a single regression, in which the local and group level predictors are combined into a single matrix X, 
+
+$$y_i \sim N(X_i \beta, \sigma^2_y)$$
+
+where X includes vectors corresponding to, 
+
+A constant term, $X_{(0)}$, 
+$X_{(1)}$, 
+$X_{(2)}$, 
+J (not J-1) group indicators, $X_{(3)}, \cdots, X_{(J + 2)}$
+
+The J county indicators (which in this case are $\beta_3, \cdots, \beta_{J + 2}$) follow a normal distribution: 
+
+$$\beta_j \sim N(0, \sigma^2)$$
+
+\textcolor{red}{In this case the $\beta_j$ distribution is centered at 0 rather than at an estiamted $\mu_\beta$ because any such $\mu_\beta$ would be statistically indistinguishable from the constant term in the regression - ? }
+
+\textit{Moving the constant term around}
+
+The multilevel model can be writted another way by moving the constant term, 
+
+$$
+\begin{aligned}
+y_i &= N(X_i\beta, \sigma^2_y), \qquad \text{for } i = 1, \cdots, n\\
+\beta_j &\sim N(\mu, \sigma^2), \qquad \text{for } j = 3, \cdots, J + 2\\
+\end{aligned}
+$$
+
+In this version, the constant term from X has been removed and replaced by the equivalent term $\mu$ in the group level model. The coefficients $\beta_3, \cdots, \beta_{J + 2}$ for the group indicators are now centered around $\mu$ and are equivalent to $\beta_{0[j]}$ from earlier models. 
+
+\textit{Regression with multiple error terms}
+Re-express the model bu treating the group level indicator coefficients as error terms rather than regression coefficients, 
+
+$$
+\begin{aligned}
+y_i &\sim N(X_i \beta + \eta_{j[i]}, \sigma^2_y),\\
+\eta_j &\sim N(0, \sigma^2)
+\end{aligned}
+$$
+
+\textit{Large regression with correlated errors}
+
+Finally, we can express a multilevel model with correlated errors, 
+
+$$
+\begin{aligned}
+y_i &= X_i\beta + \epsilon^{all}_i\\
+\epsilon^{all} &\sim N(0, \Sigma)\\
+\end{aligned}
+$$
+
+
+where X now has three predictors and the errors have an $n \times n$ covariance matrix. $\Sigma$ is paramterized as, 
+
+For unit i: $\Sigma_{ii} = \mathbb{V}[\epsilon^{all}_i] = \sigma^2_y + \sigma^2$.
+For unit i,k in same group j, $\Sigma_{ik} = \mathbb{C}ov[\epsilon^{all}_i, \epsilon^{all}_k] = \sigma^2$
+For unit i,k in different groups, $\Sigma_{ik} = \mathbb{C}ov[\epsilon^{all}_i, \epsilon^{all}_k] = 0$.
+
+\textcolor{red}{What about for multivariate cases?}
+
+When is multilevel modeling most effective? Multilevel modeling is most important when it is close to **complete pooling**, atleast for some groups. Estimates are more pooled when the group standard deviation $\sigma_\alpha$ is small, i.e., when the groups are similar to each other. In contrast, when $\sigma_\alpha$ is large, so that the groups vary greatly, multlevel modeling is not much better than simple no-pooling estimation. 
+
+\textcolor{red}{How do you test statistical significance of varying intercepts? Chp12 pg271}
+
+#9. Multilevel Linear Models: Varying slopes, non-nested models, and other complexities
+
+Beyond varying intercepts are models than allow varying intercepts AND slopes. 
+
+$$
+\begin{aligned}
+y_i &\sim N (\alpha_{j[i]} + \beta_{j[i]}x_i, \sigma^2_y)\\
+\begin{pmatrix}
+\alpha_j\\
+\beta_j\\
+\end{pmatrix} &\sim N \left(\begin{pmatrix}\mu_\alpha\\\mu_\beta\\ 
+\end{pmatrix}, 
+\begin{pmatrix}
+\sigma^2_\alpha & \rho \sigma_\alpha \sigma_\beta\\
+\rho \sigma_\alpha \sigma_\beta & \sigma^2_\beta
+\end{pmatrix} 
+\right)\\
+\end{aligned}
+$$
+The covariance structure describes the variation in $\alpha_j$'s and $\beta_j$'s and also a between group correlation parameter $\rho$.
+
+In R code this is written as,
+
+```{r, echo = T, eval = FALSE}
+require(lme4)
+lmer(y ~ x + (1 + x | group))
+```
+
+In this model, the unexplained within-county variation has an estimated standard deviation of $\hat{\sigma}^2_y$, the estimated standard deviation of the group intercepts is $\hat{\sigma}_\alpha$, the estimated standard deviation of the group slopes is $\hat{\sigma}_\beta$. The estimated correlation between slopes and intercepts is $\rho$.
+
+Extending this model by including a group-level predictor, 
+
+$$
+\begin{aligned}
+y_i &\sim N (\alpha_{j[i]} + \beta_{j[i]}x_i, \sigma^2_y)\\
+\begin{pmatrix}
+\alpha_j\\
+\beta_j\\
+\end{pmatrix} &\sim N \left(\begin{pmatrix}\gamma^\alpha_0 + \gamma_1^\alpha \mu_j\\\ \gamma_0^\beta + \gamma_1^\beta \mu_j\\ 
+\end{pmatrix}, 
+\begin{pmatrix}
+\sigma^2_\alpha & \rho \sigma_\alpha \sigma_\beta\\
+\rho \sigma_\alpha \sigma_\beta & \sigma^2_\beta
+\end{pmatrix} 
+\right)\\
+\end{aligned}
+$$
+
+\textcolor{red}{Why can we think of models with varying slope and intercepts as interactions between group indicators and an individual-level predictor?} Because when we estimate models with varying slopes and varying intercepts, there will be a group level indicator for slope and intercept multiplied by the individual level predictor (x). 
+
+In terms of R code this is, 
+
+```{r, eval = F}
+lmer(y ~ x + U.full + x:U.full + (1 + x|group))
+```
+
+The model above can be broken down into, 
+
+$$
+\begin{aligned}
+y_i &= \alpha_{j[i]} + \beta_{j[i]}x_i + \epsilon_i\\
+\alpha_j &= \gamma^\alpha_0 + \gamma_1^\alpha \mu_j + \eta^\alpha_j\\
+\beta_j &= \gamma^\beta_0 + \gamma^\beta_1 \mu_j + \eta^\beta_j\\
+\end{aligned}
+$$
+We can re-express this as a single model by substituting formulas for $\alpha_j$ and $\beta_j$, 
+
+$$y_i = [\gamma^\alpha_0 + \gamma_1^\alpha \mu_j + \eta^\alpha_j] + [\gamma^\beta_0 + \gamma^\beta_1 \mu_j + \eta^\beta_j]x_i + \epsilon_i$$
+If we define a new individual-level predictor $\nu_i = \mu_{j[i]}$, we can re-express the above equation as, 
+
+$$y_i = a + b \nu_i + c_{j[i]} + dx_i + e\nu_ix_i + f_{j[i]}x_i + \epsilon_i$$
+
+This can be thought of is a number of ways, 
+
+\begin{itemize}
+\item{A varying intercept, varying slope model with four individual-level predictors (the constant term $v_i, x_i$ and the interaction $v_i x_i$) and the varying intercepts and slopes that are centered at 0}
+\item{A regression model with 4 + 2J predictors: the constant term $v_i, x_i, (v_ix_i)$ and two group level predictors $c_{j[i]}, f_{j[i]$}
+\item{A regression model with four predictors and three error terms}
+\end{itemize}
+
+
+##9.1 Understanding correlations in varying slope-intercept model
+
+The varying slopes can be interpreted as interactions between an  individual predictor and group indicators. As with classical regression models with interactions, the intercepts can often be more clearly interpreted if the continuous predictor is appropriately centered. When there is a very high correlation, it is useful to subtract the average value fo the continuous x before including it in the regression, to scale it. 
+
+
+#10. Detecting Influential Data in Mixed Effect Models
+
+*(from Nieuwenhuis et al., 2012)*
+
+This section of notes is based on lectures on diagnostic tools for influential data for mixed modela. These measures include DFBETAS, Cook's distance and percentile change and a test for changing levels of significance. It is commonly accepted that tests for influential data should be performed on regression models, especially when estimates are based on a small number of cases. However, existing procedures do not account for the nesting structure of the data. As a result, these existing procedures fail to detect that higher-level cases may be influential on estimates of variables measured at specifically that level.
+
+Testing for influential cases in mixed effect regression models is important, because influential data negatively influence the statistical fit and generalizability of the model. 
+
+All cases used to estimate a regression model exert some level of influence on the regression parameters. However, if a single case has extremely high or low scores on the dependent variable relative to its expected value, this case may overly influence the regression parameters by pulling the estimated regression line towards itself. The simple inclusion or exclusion of such a single case may then lead to substantially different regression estimates. This runs against distributional assumptions associated with regression models, as a result limits the validity and generalizability of regression models in which influential cases are present. 
+
+
+The analysis of residuals cannot be used for the detection of influential cases. Cases with high residuals (defined as the difference between the observed and predicted scores on the dependent variable) or with high standardized residuals are indicated as outliers. On the contrary, a strongly influential case dominates the regression model in such a way that the estimated regression line lies closely to this case. Although influental cases thus have extreme values on one or more of the variables, they can be *onliers* rather than *outliers*. To account for this, *standardized deleted residuals* are defined as the difference between the observed score of a case on the dependent variable and the predictor score from the regression model that is based on data from which the case was removed. 
+
+Just as influential cases are not necessarily outliers, outliers are not necessarily influential cases. The reason for this is the influence a case exerts on the regression slope is not only determined by how well its (observed) score is fitted by the specified regression model, but also by its score(s) on the independent variable(s). 
+
+The degrees to which the scores of a case on the independent variable(s) are extreme is indicated by the leverage of this case. A higher leverage means more extreme scores on the independent variables and a greater potential of overly influencing the regression outcomes. 
+
+The basic rationale behind measuring influenctial cases is based on the principle that when single cases are iteratively omitted from the data, models based on these data should not produce substantially different estimates. If the model parameters change substantially after a single case is excluded, this case may be regarded as too influential. 
+
+How much change in the model parameters is acceptable? 
+DFBETAS is a standardized measure of the absolute difference between the estimate with a particular case included and the estimate without that particular case. Cook's distance provides an overall measurement of the change in all parameter estiamtes, or a selection thereof. In addtion, measure of percentile change and a test for changing levels of signficance of the fixed parameters. 
+
+This discussion can be extended from how single cases can overly influence the point estimates (or betas) of a regression model to biasing confidence intervals of these estiamtes. Cases with high leverage can be influential because of their extreme values on the independent variables. Cases with a high leverage but a low deleted residual compress standard errors, while cases with low leverage and a high deleted residual inflate standard errors. 
+
+\textcolor{red}{To apply the logic of detecting influential data to generalized mixed effects models, one has to measure the influence of a particular higher level group
+on the estimates of a predictor measured at that level.
+The straightforward way is to delete all observations
+from the data that are nested within a single higher
+level group, then re-estimate the regression model,
+and finally evaluate the change in the estimated regression parameters. This procedure is then repeated
+for each higher-level group separately.}
+
+
+## 10.1 DFBETAS
+
+DFBETAS is a standardized measure that indicates the level of influence oobservations have on a single aprameter. Regarding mixed models, this relates to the influence a higher level unit has on the parameter estimate. DFBETAS is calculated as the difference in the magnitude of the parameter estimate between the model including and the model excluding the higher level case. 
+
+$$DFBETAS_{ij} = \frac{\hat{\gamma_i} - \hat{\gamma}_{i(-j)}}{se(\hat{\gamma}_{i(-j)})}$$
+
+where i refers to the parameter estiamte, and j the higher level group so that $\hat{\gamma}_i$ represnts the original estiamte of parameter i and $\hat{\gamma}_{i(-j)}$ represents the estimate of parameter i, after the higher level group j has been excluded from the data. 
+
+Cut off value for DFBETAS is $2/ \sqrt{n}$
+
+
+## 10.2 Cook's distance 
+
+Since DFBETAS provides a value for each parameter and for each higher-level unit that is evaluated, this often results in quite a large number of values to evaluate. An alternative is Cook's distnace- provides a summary measure for the influence a higher level unit exerts on all parameters simultaneously. 
+
+$$C_j^{0F} = \frac{1}{r +1}\left(\hat{\gamma} - \hat{\gamma}_{(-j)}\right) \hat{\Sigma}_F^{-1}\left(\hat{\gamma} - \hat{\gamma}_{(-j)}\right)$$
+
+where $\hat{\gamma}$ represents the vector of the original parameter estimates, $\hat{\gamma}_{(-j)}$ the parameter estimates of the model excluding the higher level unit j, and $\hat{\Sigma}_F$ represents the covariance matrix. r is the number of parameters that are evaluated, excluding the intercept vector. 
+
+The cut off value for Cook's distance is $4/n$ where n refers to number of groups in grouping factor under evaluation. 
+
+
+**Note:** If Cook's distance is calculated based on a single parameter, the Cook's distance equals the squared value of the DFBETAS for that parameter. 
+
+##10.3 Percentile Change 
+
+For substantive interpretation of the model
+outcomes, the relative degree to which a parameter
+estimate changes may provide more meaningful information. For each higher level group, the percentage of change is calculated as the absolute difference between the parameter estimate both including and excluding the higher-level
+unit, divided by the parameter estimate of the complete model and multiplied by 100%. A percentage of change is returned for each parameter separately, for each of the higher-level units under investigation.
+
+$$\left(\hat{\gamma} - \hat{\gamma}_{(-j)}\right)\frac{1}{\hat{\gamma}} \times 100
+\% $$
+
+
+
+#12. Mixed-Effects Models: Bayesian Inference
+
+
+
+#13. Case studies 
+
+##13.1 Reed frogs
+\textit{From Rethinking Statistics}
+
+Think of each row as a tank, an experimental environment that contains tadpoles. There are lots of things peculiar to each tank that go unmeasured, and these unmeasured factors create variation in survival across tanks, even when all predictor variables have the same value. If these "clusters" are ignored, we might be ignoring important variation in baseline survival. 
+
+To accommodate variation produced by differen tanks, we can create a varying effects model. A varying INTERCEPTS model is the simplest kind of varying effects model. A random intercept model is no different than a categorical variable for tank model. 
+
+```{r}
+
+reedfrogs <- read.csv("~/Documents/R/STAT610/reedfrogsCLEAN.csv", stringsAsFactors = T)
+colnames(reedfrogs)[1] <- "density"
+
+require(brms)
+require(tidyverse)
+require(dplyr)
+
+reedfrogs <- 
+  reedfrogs %>%
+  mutate(tank = 1:nrow(reedfrogs))
+
+head(reedfrogs)
+  
+```
+
+
+$$
+\begin{aligned}
+\text{surv}_i &\sim \text{Binomial}(n_i, p_i)\\
+\text{logit}(p_i) &= \alpha_{\text{tank}_i}\\
+\alpha_{\text{tank}} &\sim \text{Normal}(0,5)
+\end{aligned}
+$$
+
+Notes on the model- here, we are using logistic regression to predict survival. Probability of survival is modelled as a random intercept for each record in the given dataframe. 
+
+Fitting a model 
+
+```{r, message= FALSE, warning=FALSE, error=FALSE}
+b1 <- brm(data = reedfrogs, family = binomial,
+          surv|trials(density) ~ 0 + factor(tank), 
+          prior(normal(0,5), class = b),
+          iter = 2000, warmup = 500, chains = 4,
+          cores = parallel::detectCores(), 
+          seed = 12)
+#this will give us 48 intercepts- one for each tank
+```
+
+An alternative model is 
+
+$$
+\begin{aligned}
+\text{surv}_i &\sim \text{Binomial}(n_i, p_i)\\
+\text{logit}(p_i) &= \alpha_{\text{tank}_i}\\
+\alpha_{\text{tank}}&\sim \text{Normal}(\alpha, \sigma)\\
+\alpha &\sim \text{Normal}(0,1)\\
+\sigma &\sim \text{HalfCauchy}(0,1)\\
+\end{aligned}
+$$
+
+```{r, message= FALSE, warning=FALSE, error=FALSE}
+b1.2 <- brm(data = reedfrogs, family = binomial,
+            surv|trials(density) ~ 1 + (1|tank), 
+            prior = c(prior(normal(0, 1), class = Intercept),
+                      prior(cauchy(0, 1), class = sd)),
+            iter = 4000, warmup = 1000, chains = 4, 
+            cores = parallel::detectCores(), 
+            seed = 12)
+
+```
+
+In this case, 1 + (1|tank) indicates only tthe intercept, 1, varies by tank. The extent to which parameters vary is controlled by the prior (cauchy prior).
+
+
+Let's do model selections
+```{r}
+b1  <- add_criterion(b1, "waic")
+b1.2 <- add_criterion(b1.2, "waic")
+
+w <- loo_compare(b1, b1.2, criterion = "waic")
+
+print(w, simplify = F)
+```
+
+pWAIC tells us something about how many "effective parameters" there are in the model. In this case, b1 has $\sim$ 24 and b1.2 has $\sim$ 21. There are fewer effective parameters than actual parameters because the other parameters are shrunk towards mean $\alpha$. The model with the fewer number of effective parameters indicates more shrinkage. 
+
+Compare with LOO
+```{r}
+b1 <- add_criterion(b1, "loo")
+b1.2 <- add_criterion(b1.2, "loo")
+
+w2 <- loo_compare(b1, b1.2, criterion = "loo")
+print(w2, simplfy = F)
+```
+
+Let's visualize shrinkage 
+
+```{r}
+post <- posterior_samples(b1.2, add_chain = T)
+
+post_mdn <- coef(b1.2, robust = T)$tank[, ,] %>%
+  as_tibble() %>%
+  bind_cols(reedfrogs)%>%
+  mutate(post_mdn = inv_logit_scaled(Estimate))
+
+glimpse(post_mdn)
+```
+
+
+```{r}
+require(ggthemes)
+post_mdn %>%
+  ggplot(aes(x = tank)) +
+  geom_hline(yintercept = inv_logit_scaled(median(post$b_Intercept)), linetype = 2, size = 1/4) + geom_vline(xintercept = c(16.5, 32.5), size = 1/4) +
+  geom_point(aes(y = propsurv), color = "orange2") + 
+  geom_point(aes(y = post_mdn), shape = 1) + 
+  coord_cartesian(ylim = c(0,1)) + 
+  scale_x_continuous(breaks = c(1, 16, 32, 48)) + 
+  labs(title = "Multilevel shrinkage!", 
+       subtitle = "The empirical proportions are in orange while the model-\n implied proportions are the black circles. The dashed line is\nthe model-implied average survival proportion") + 
+  annotate("text", x = c(8, 16 + 8, 32 + 8), y = 0, 
+           label = c("small tanks", "medium tanks", "large tanks")) + 
+  theme_fivethirtyeight() + 
+  theme(panel.grid = element_blank())
+
+```
+
+```{r}
+plotDat <- post %>%
+  sample_n(100) %>%
+  expand(nesting(iter, b_Intercept, sd_tank__Intercept), 
+         x = seq(from = -4, to = 5, length.out = 100))
+
+plotDat <- as.data.frame(plotDat)
+  
+  ggplot(data = plotDat, aes(x = x, group = iter)) + 
+  geom_line(aes(y = dnorm(plotDat[,4], plotDat[,2], plotDat[, 3])), 
+            alpha = .2, color = "orange2") + 
+  labs(title = "Population survival distribution", 
+       subtitle = "The Gaussian are on the log-odds scale.") + 
+  scale_y_continuous(NULL, breaks = NULL) + 
+  coord_cartesian(xlim = c(-3, 4)) + 
+  theme_fivethirtyeight() + 
+  theme(plot.title = element_text(size = 13), 
+        plot.subtitle = element_text(size = 10))
+
+```
+The uncertainty in this plot is obvious both in the location of $\alpha$ and in the scale $\sigma$. 
+
+
+```{r, message = FALSE, error = FALSE, warning = FALSE}
+b1.2e <- update(b1.2, 
+                prior = c(prior(normal(0, 1), class = Intercept), 
+                          prior(exponential(1), class = sd)))
+
+print(b1.2e)
+
+```
+
+Plot for how the prior compares to the posterior ? 
+
+```{r}
+
+xdat <- as.data.frame(cbind(x= seq(from =0, to=6, by =0.1)))
+  ggplot(xdat) + 
+  geom_ribbon(aes(x = x, ymin = 0, ymax = dexp(x, rate = 1)), 
+              fill = "orange2", alpha = 1/3) +  geom_density(data = posterior_samples(b1.2e),
+               aes(x = sd_tank__Intercept), 
+               fill = "orange2", size = 0)+
+  scale_y_continuous(NULL, breaks = NULL) + 
+  coord_cartesian(xlim = c(0,5)) + 
+  labs(title = "Prior/posterior plot for sd_tank_intercept", 
+       subtitle = "The prior is the semitransparent ramp in the \nbackground. The posterior is the solid orange \nmound") + 
+  theme_fivethirtyeight()
+```
+
+
+Varying intercepts are just regularized estimates, but adaptively regularized by estimating how diverse the clusters are while estimating the features of each cluster. 
+
+There are three perspectives here 
+
+\begin{itemize}
+\item{Complete pooling (a single-$\alpha$ model)}
+\item{No pooling (the single level $\alpha_{\text{tank}_i}$)}
+\item{Partial pooling (the multilevel model for which $\alpha_{\text{tank}}\sim \text{Normal}(\alpha, \sigma)$)}
+\end{itemize}
+
+Next section is going to demonstrate the different estimates from the three models above. 
+
+
+```{r}
+a <- 1.4
+sigma <- 1.5
+nponds <- 60
+
+set.seed(12)
+dsim <- tibble(pong = 1:nponds, 
+               ni = rep(c(5, 10, 25, 35), each = nponds/4) %>% as.integer(),
+                        true_a = rnorm(n = nponds, mean = a, sd = sigma))
+set.seed(12)
+dsim <- dsim %>% 
+  mutate(si = rbinom(n = n(), prob = inv_logit_scaled(true_a), size = ni))
+
+glimpse(dsim)
+```
+
+Generating no-pooling estiamtes i.e. $\alpha_{\text{tank}_i}$. This is the result of simple algebra. 
+
+```{r}
+dsim <- dsim %>%
+  mutate(p_nopool = si/ni)
+
+glimpse(dsim)
+```
+
+These are the same no-pooling estiamtes you'd get by fitting a model with a dummy variable (categorical variable) for each pong and flat priors that induce no regularization. 
+
+Generating partial-pooling estimates i.e. $\alpha_{\text{tank}}$.
+
+```{r}
+b1.3 <- brm(data = dsim, family = binomial,
+            si|trials(ni) ~ 1 + (1|pong),
+            prior = c(prior(normal(0,1), class = Intercept),
+                      prior(cauchy(0,1), class = sd)), 
+            iter = 10000, warmup = 1000, chains = 1, cores = parallel::detectCores(),
+            seed = 12)
+
+summary(b1.3)
+```
+
+```{r}
+coef(b1.3)$pong[c(1:2, 59:60), ,  ] %>%
+  round(digits = 2)
+
+#rhat(mod) extracts rhat 
+#neff_ratio(mode) returns ratios of the effective samples over the total number
+#of post-warmup iterations. 
+
+#there is a way to get effective samples (check book)
+```
+
+
+A plot for an estimate of error by model type 
+
+```{r}
+p_partpool <- coef(b1.3)$pong[, ,] %>%
+  as_tibble() %>%
+  transmute(p_partpool = inv_logit_scaled(Estimate))
+
+dsim <- dsim %>%
+  bind_cols(p_partpool) %>%
+  mutate(p_true = inv_logit_scaled(true_a)) %>%
+  mutate(nopool_error = abs(p_nopool - p_true), 
+         partpool_error = abs(p_partpool - p_true))
+
+glimpse(dsim)
+
+```
+
+```{r}
+dfline <- 
+  dsim %>%
+  select(ni, nopool_error:partpool_error) %>%
+  gather(key, value, -ni) %>%
+  group_by(key, ni) %>%
+  summarise(mean_error = mean(value)) %>%
+  mutate(x =c(1, 16, 31, 46),
+         xend = c(15, 30, 45, 60))
+
+#calculating mean error for not pooled and partial pooled for each group (n).
+```
+
+```{r}
+
+dsim %>%
+  ggplot(aes(x = pong)) + 
+  geom_vline(xintercept = c(15.5, 30.5, 45.4),
+             color = "white", size = 2/3) + 
+  geom_point(aes(y = nopool_error), color = "orange2") + 
+  geom_point(aes(y = partpool_error), shape =1) + 
+  geom_segment(data = dfline, 
+               aes(x = x, xend = xend, 
+               y = mean_error, yend = mean_error),
+               color = rep(c("orange2", "black"), each=4),
+               linetype = rep(1:2, each = 4)) +
+  scale_x_continuous(breaks = c(1, 10, 20, 30, 40, 50, 60)) +
+  annotate("text", x = c(15 - 7.5, 30- 7.5, 45 - 7.5, 60 - 7.5), y = 0.45,
+           label = c("tiny (5)", "small (10)", "medium (25)", "large (35)")) + 
+  labs(y = "absolute error", 
+       title = "Estimate error by model type", 
+       subtitle = "The horizontal axis displays pond number. The vertical axis measures\nthe absolute error in the predicted proportion of survivors, compared to\nthe true value used in the simulation. The higher the point, the worse\nthe estimate. No-pooling shown in orange. Partial pooling shown in black.\nThe orange and dashed black lines show the average error for each kind\nof estimate, across each initial density of tadpoles (pond size). Smaller\nponds produce more error, but the partial pooling estimates are better\non average, especially in smaller ponds.") + 
+  theme_fivethirtyeight() + 
+  theme(panel.grid = element_blank(),
+        plot.subtitle =  element_text(size = 10))
+
+```
+
+A simple quantitative summary of error might be, 
+
+```{r}
+dsim %>%
+  select(ni, nopool_error:partpool_error) %>%
+  gather(key, value, -ni) %>%
+  group_by(key) %>%
+  summarise(mean_error   = mean(value) %>% round(digits = 3),
+            median_error = median(value) %>% round(digits = 3)) %>%
+  print()
+
+```
+
+
+
+##13.2 Chimpanzee
+
+```{r}
+chimp <- readRDS("~/Documents/R/STAT610/STA610_Labs/Oct30/chimpanzees.Rds")
+```
+
+
+The model we use for this dataset is 
+
+$$
+\begin{aligned}
+\text{left_pull}_i &\sim \text{Binomial}(n_i = 1, p_i)\\
+\text{logit}(p_i) &= \alpha + \alpha_{\text{actor}_i} + (\beta_1 + \beta_2\text{condition}_i)\text{prosoc_left}_i\\
+\alpha_{\text{actor}} &\sim \text{Normal}(0, \sigma_{\text{actor}})\\
+\alpha &\sim \text{Normal}(0, 10)\\
+\beta_1 &\sim \text{Normal}(0, 10)\\
+\beta_2 &\sim \text{Normal}(0, 10)\\
+\sigma_{\text{actor}} &\sim \text{HalfCauchy}(0, 1)\\
+\end{aligned}
+$$
+
+
+Here, the mean of actor $\alpha$ is taken out of the random effect and treated as a constant that each random effect group i will add or subtract from. 
+
+```{r}
+
+b2.1 <- brm(data = chimp, family = binomial, 
+            pulled_left |trials(1) ~ 1 + prosoc_left + prosoc_left:condition + (1|actor),
+            prior = c(prior(normal(0, 10), class = Intercept),
+                      prior(normal(0, 10), class = b), 
+                      prior(normal(0, 10), class = sd)),
+            iter = 5000, warmup = 1000, chains = 4, cores = parallel::detectCores(),
+            control = list(adapt_delta = 0.95), 
+            seed = 12)
+
+summary(b2.1)
+```
+
+Next, add the actor-level deviations to the fixed intercept i.e. the grand mean. 
+
+```{r}
+post <- posterior_samples(b2.1)
+
+post %>%
+  select(starts_with("r_actor")) %>%
+  gather() %>%
+  mutate(value = value + post$b_Intercept) %>%
+  group_by(key) %>%
+  summarise(mean = mean(value) %>% round(digits = 2))
+```
+
+
+Another way to get the same information plus 95% confidence intervals 
+
+```{r}
+coef(b2.1)$actor[, c(1, 3:4), 1] %>%
+  as_tibble() %>% 
+  round(digits = 2) %>%
+  # here we put the credible intervals in an APA-6-style format
+  mutate(`95% CIs` = str_c("[", Q2.5, ", ", Q97.5, "]"),
+         actor     = str_c("chimp #", 1:7)) %>%
+  rename(mean = Estimate) %>%
+  select(actor, mean, `95% CIs`) %>% 
+  knitr::kable()
+
+```
+
+
+
+Let's add a block effect to the model 
+
+$$
+\begin{aligned}
+\text{left_pull}_i &\sim \text{Binomial}(n_i = 1, p_i)\\
+\text{logit}(p_i) &= \alpha + \alpha_{\text{actor}_i} + \alpha_{\text{block}_i} + (\beta_1 + \beta_2\text{condition}_i)\text{prosoc_left}_i\\
+\alpha_{\text{actor}} &\sim \text{Normal}(0, \sigma_{\text{actor}})\\
+\alpha_{\text{block}} &\sim \text{Normal}(0, \sigma_{\text{block}})\\
+\alpha &\sim \text{Normal}(0, 10)\\
+\beta_1 &\sim \text{Normal}(0, 10)\\
+\beta_2 &\sim \text{Normal}(0, 10)\\
+\sigma_{\text{actor}} &\sim \text{HalfCauchy}(0, 1)\\
+\sigma_{\text{block}} &\sim \text{HalfCauchy}(0,1)\\
+\end{aligned}
+$$
+
+This model now has varying intercepts for both actor and block
+
+```{r}
+b2.2 <- brm(data = chimp, family = binomial, 
+            pulled_left|trials(1) ~ 1 + (1|actor) + (1|block) + 
+              prosoc_left + prosoc_left:condition,
+            prior = c(prior(normal(0, 10), class = Intercept),
+                      prior(normal(0, 10), class = b), 
+                      prior(cauchy(0, 1), class = sd)), 
+            iter = 5000, warmup =1000, chains = 4, 
+            cores = parallel::detectCores(), 
+            control = list(adapt_delta = 0.95), 
+            seed = 12)
+#increase adapt_delta to 0.99 to reduce/avoid divergent transitions
+
+summary(b2.2)
+
+```
+
+```{r, message=F, error=F, warning=F, fig.height = 5}
+require(bayesplot)
+
+post <- posterior_samples(b2.2, add_chain = T)
+
+post %>%
+  select(-lp__, -iter) %>%
+  mcmc_trace(facet_args = list(ncol = 4)) + 
+  scale_x_continuous(breaks = c(0, 2500, 5000)) + 
+  theme_fivethirtyeight() +
+  theme(legend.position = c(.75, .06))
+
+```
+
+Let's look at the $n_{eff}/N$ ratios
+
+```{r}
+
+color_scheme_set("orange")
+
+neff_ratio(b2.2) %>%
+  mcmc_neff() + 
+  theme_fivethirtyeight()
+
+```
+
+Some values are lower than what is good. But none are below 0.1. 
+
+
+```{r}
+ranef(b2.2)$actor[, , "Intercept"] %>%
+  round(digits = 2) %>%
+  knitr::kable()
+  
+```
+
+
+```{r}
+ranef(b2.2)$block[, , "Intercept"] %>%
+  round(digits = 2) %>%
+  knitr::kable()
+
+```
+
+Coefficient plot 
+
+```{r}
+
+brms::stanplot(b2.2, pars = c("^r_", "^b_", "^sd_")) + 
+  theme_fivethirtyeight() + 
+  theme(axis.text.y = element_text(hjust = 0))
+```
+
+We can also look at the posterior samples as it's easy to compare the random variances 
+
+```{r}
+post %>%
+  ggplot(aes(x = sd_actor__Intercept)) + 
+  geom_density(size = 0, fill = "orange1", alpha = 3/4) + 
+  geom_density(aes(x= sd_block__Intercept), 
+               size = 0, fill = "orange4", alpha = 3/4) + 
+  scale_y_continuous(NULL, breaks = NULL) +
+  coord_cartesian(xlim = c(0, 4)) + 
+  labs(title = expression(sigma)) + 
+  annotate("text", x = 2/3, y = 2, label = "block", color = "orange4") + 
+  annotate("text", x = 2, y = 3/4, label = "actor", color = "orange1") + 
+  theme_fivethirtyeight()
+
+```
+
+It looks like the block random effect is centered nearly at zero, indicating that the blocks have almost no variation within them, whereas actor standard deviation is centered around 2 and has a large standard deviation indicating that actors are highly variable and have more variation among them. 
+
+We can do a model selection using their LOO values
+
+```{r}
+b2.1 <- add_criterion(b2.1, "loo")
+b2.2 <- add_criterion(b2.2, "loo")
+
+loo_compare(b2.1, b2.2) %>%
+  print(simplfy = F)
+```
+
+
+Looking at multilevel posterior predictions.
+
+We are giving the model new prosoc_left and condition data for a given chimp (chimp 2). 
+
+```{r}
+chimp2 <- 2
+
+nd <- tibble(prosoc_left = c(0,1,0,1), 
+             condition = c(0,0,1,1),
+             actor = chimp2)
+
+chimp_2_fitted <- fitted(b2.1, 
+                         newdata = nd) %>%
+  as_tibble()%>%
+  mutate(condition = factor(c("0/0", "1/0", "0/1", "1/1"),
+                            levels = c("0/0", "1/0", "0/1","1/1")))
+
+chimp_2_d <- 
+  chimp %>%
+  filter(actor == chimp2) %>%
+  group_by(prosoc_left, condition) %>%
+  summarise(prob = mean(pulled_left)) %>%
+  ungroup() %>%
+  mutate(condition = str_c(prosoc_left, "/", condition)) %>%
+  mutate(condition = factor(condition, levels= c("0/0", "1/0", "0/1", "1/1")))
+
+chimp_2_fitted %>%
+  ggplot(aes(x = condition, y = Estimate, group = 1)) + 
+  geom_ribbon(aes(ymin = Q2.5, ymax = Q97.5), fill = "orange1") +
+  geom_line(color = "blue") +
+  geom_point(data = chimp_2_d, 
+             aes(y = prob),
+             color = "grey25") + 
+  ggtitle("Chimp #2", 
+          subtitle = "The posterior mean and 95%\nintervals are the blue line \nand orange band respectively. \nThe empirical means are \nthe charcoal dots.")+
+  coord_cartesian(ylim = c(.75, 1)) + 
+  theme_fivethirtyeight() +
+  theme(plot.subtitle = element_text(size = 10))
+```
+
+
+```{r}
+post <- posterior_samples(b2.1)
+
+post %>%
+  transmute(actor_5 = `r_actor[5,Intercept]`) %>%
+  ggplot(aes(x = actor_5)) +
+  geom_density(size = 0, fill = "blue") + 
+  scale_y_continuous(breaks = NULL) +
+  ggtitle("Chimp #5's Density") +
+  theme_fivethirtyeight()
+```
+
+
+```{r, warning=F, message=F, error=F}
+#a function for a logit link backtransformation 
+
+my_fitted <- function(prosoc_left, condition){
+  post %>%
+    transmute(fitted = (b_Intercept + `r_actor[5,Intercept]` +
+                          b_prosoc_left * prosoc_left +
+                          `b_prosoc_left:condition` * prosoc_left * condition) %>%
+                inv_logit_scaled())
+}
+
+chimp5_my_fitted <- tibble(prosoc_left = c(0,1,0,1), 
+                           condition = c(0,0,1,1)) %>%
+  mutate(post = purrr::map2(prosoc_left, condition, my_fitted)) %>%
+  unnest() %>%
+  mutate(condition = str_c(prosoc_left, "/", condition)) %>%
+  mutate(condition = factor(condition, levels =c("0/0", "1/0", "0/1", "1/1"))) %>%
+  group_by(condition) %>%
+  tidybayes::mean_qi(fitted)
+
+chimp <- 5
+  chimp_5_d <-
+  d %>% 
+  filter(actor == chimp) %>% 
+  group_by(prosoc_left, condition) %>% 
+  summarise(prob = mean(pulled_left)) %>% 
+  ungroup() %>% 
+  mutate(condition = str_c(prosoc_left, "/", condition)) %>% 
+  mutate(condition = factor(condition, levels = c("0/0", "1/0", "0/1", "1/1")))
+
+  
+chimp5_my_fitted %>%
+  ggplot(aes(x = condition, y = fitted, group = 1)) +
+  geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = "orange1") +
+  geom_line(color = "blue") +
+  geom_point(data = chimp_5_d,
+             aes(y = prob),
+             color = "grey25") +
+  ggtitle("Chimp #5",
+          subtitle = "This plot is like the last except\nwe did more by hand.") +
+  coord_cartesian(ylim = 0:1) +
+  theme_fivethirtyeight() +
+  theme(plot.subtitle = element_text(size = 10))
+```
+
+
+##13.3 Coffee Robot
+
+This case study will look at varying intercepts and varying slopes. Varying slopes and varying intercepts together improve estimates of intercepts, by borrowing information across parameter types. 
+
+Essentially, varying slope models are massive interaction machines. They allow every unit in the data to have its own unique response to any treatment or exposure or event, while also improving estimates via pooling. When the variation in slopes in large, the average slope is of less interest. 
+
+By modelling the joint population of intercepts and slopes, which means modelling their covariance. 
+
+```{r}
+a <- 3.5
+b <- -1
+sigma_a <- 1 
+sigma_b <- 0.5
+rho <- -.7
+
+mu <- c(a,b)
+cov_ab <- sigma_a * sigma_b * rho
+sigma <- matrix(c(sigma_a^2, cov_ab, 
+                  cov_ab, sigma_b^2), ncol = 2)
+```
+
+```{r}
+sigmas <- c(sigma_a, sigma_b)
+rho <- matrix(c(1, rho, rho, 1), nrow =2)
+sigma <- diag(sigmas) %*% rho %*% diag(sigmas)
+
+n_cafes <- 20
+
+#simulate data
+set.seed(13)
+vary_effects <- MASS::mvrnorm(n_cafes, mu, sigma) %>%
+  data.frame() %>%
+  set_names("a_cafe", "b_cafe")
+
+head(vary_effects)
+```
+
+```{r}
+
+vary_effects %>%
+  ggplot(aes(x = a_cafe, y= b_cafe)) +
+  geom_point(color = "orange4") +
+  geom_rug(color = "orange3")+
+  theme_fivethirtyeight()
+```
+
+
+
+```{r}
+n_visits <- 10
+sigma <- 0.5 #standard deviation within cafes
+
+set.seed(13)
+d <- vary_effects %>%
+  mutate(cafe = 1:n_cafes) %>%
+  expand(nesting(cafe, a_cafe, b_cafe), visit = 1:n_visits) %>%
+  mutate(afternoon = rep(0:1, times = n()/2)) %>%
+  mutate(mu = a_cafe + b_cafe * afternoon) %>%
+  mutate(wait = rnorm(n= n(), mean = mu, sd = sigma))
+
+head(d)
+```
+
+Observations plot 
+
+```{r}
+d %>%
+  mutate(afternoon = ifelse(afternoon == 0, "M", "A"), 
+         day = rep(rep(1:5, each = 2), times = n_cafes)) %>%
+         filter(cafe %in% c(3, 5)) %>%
+           mutate(cafe = ifelse(cafe == 3, "cafe #3", "cafe #5")) %>%
+  ggplot(aes(x = visit, y = wait, group = day)) + 
+  geom_point(aes(color = afternoon), size = 2) + 
+  geom_line() +
+  scale_x_continuous(NULL, breaks = 1:10,
+                     labels = rep(c("M", "A"), times = 5)) + 
+  coord_cartesian(ylim = 0:4) +
+  ylab("wait time in minutes")+
+  theme(legend.position = "none", 
+        axis.ticks.x = element_blank()) + 
+  facet_wrap(~cafe, ncol = 1)
+           
+```
+
+
+
+The statisitcal formula for varying-slopes model follows the form, 
+
+$$
+\begin{aligned}
+\text{wait}_i &\sim \text{Normal}(\mu_i, \sigma)\\
+\mu_i &= \alpha_{\text{cafe}_i} + \beta_{\text{cafe}_i} \text{afternoon}_i\\
+ \begin{bmatrix} \alpha_\text{cafe} \\ 
+ \beta_\text{cafe} \end{bmatrix} & \sim \text{MVNormal} \bigg 
+ (\begin{bmatrix} \alpha \\ \beta \end{bmatrix}, \mathbf{S} \bigg ) \\
+ \mathbf S & = \begin{pmatrix} \sigma_\alpha & 0 \\ 
+ 0 & \sigma_\beta \end{pmatrix} \mathbf R \begin{pmatrix} \sigma_\alpha & 0 \\ 
+ 0 & \sigma_\beta \end{pmatrix} \\ 
+ \alpha & \sim \text{Normal} (0, 10) \\ 
+ \beta & \sim \text{Normal} (0, 10) \\ 
+ \sigma & \sim \text{HalfCauchy} (0, 1) \\ 
+ \sigma_\alpha & \sim \text{HalfCauchy} (0, 1) \\ 
+ \sigma_\beta & \sim \text{HalfCauchy} (0, 1) \\ 
+ \mathbf R & \sim \text{LKJcorr}(2) \\
+\end{aligned}
+$$
+
+S is the covariance matrix and R is the corresponding correlation matrix, which we might more fully express as 
+
+$$
+\begin{pmatrix} 1 &\rho \\
+\rho & 1 \end{pmatrix}\\
+$$
+Visualize the LKJ priors
+
+```{r, eval = FALSE}
+n_sim <- 1e5
+
+set.seed(13)
+r_1 <- rlkjcorr(n_sim, K = 2, eta = 1) %>%
+  as_tibble()
+
+set.seed(13)
+r_2 <- rlkjcorr(n_sim, K = 2, eta = 2) %>%
+  as_tibble()
+
+set.seed(13)
+r_4 <- 
+  rlkjcorr(n_sim, K = 2, eta = 4) %>%
+  as_tibble()
+
+ggplot(data = r_1, aes(x = V2)) +
+  geom_density(color = "transparent", fill = "#DCA258", alpha = 2/3) +
+  geom_density(data = r_2,
+               color = "transparent", fill = "#FCF9F0", alpha = 2/3) +
+  geom_density(data = r_4,
+               color = "transparent", fill = "#394165", alpha = 2/3) +
+  geom_text(data = tibble(x     = c(.83, .62, .46),
+                          y     = c(.54, .74, 1),
+                          label = c("eta = 1", "eta = 2", "eta = 4")),
+            aes(x = x, y = y, label = label),
+            color = "#A65141", family = "Courier") +
+  scale_y_continuous(NULL, breaks = NULL) +
+  xlab("correlation") 
+
+```
+
+
+Define model 
+
+```{r, warning=F, message=F, error=F}
+b3.1 <- brm(data = d, family = gaussian, 
+            wait ~ 1 + afternoon + (1 + afternoon|cafe), 
+            prior= c(prior(normal(0, 10), class = Intercept), 
+                     prior(normal(0, 10), class = b), 
+                     prior(cauchy(0, 2), class = sd), 
+                     prior(cauchy(0, 2), class = sigma),
+                     prior(lkj(2), class = cor)),
+            iter = 5000, warmup = 2000, chains = 2, 
+            cores = parallel::detectCores(), 
+            seed = 13)
+
+```
+
+```{r, eval = FALSE}
+post <- posterior_samples(b3.1)
+
+post %>%
+  ggplot(aes(x = cor_cafe__Intercept__afternoon)) + 
+  geom_density(data = r_2, aes(x = V2),
+               color = "transparent", fill = "#EEDA9D", alpha = 3/4) +
+  geom_density(color = "transparent", fill = "#A65141", alpha = 9/10) +
+  annotate("text", label = "posterior", 
+           x = -0.35, y = 2.2,
+           color = "#A65141", family = "Courier") + 
+  annotate("text", label = "prior",
+           x = 0, y = 0.9,
+           color = "#EEDA9D", alpha = 2/3, family = "Courier") +
+  scale_y_continuous(NULL, breaks = NULL) + 
+  xlab("correlation")
+```
+
+Pooling figure 
+
+```{r}
+
+partially_pooled_params <-
+  # with this line we select each of the 20 cafe's posterior mean (i.e., Estimate)
+  # for both `Intercept` and `afternoon`
+  coef(b3.1)$cafe[ , 1, 1:2] %>%
+  as_tibble() %>%               # convert the two vectors to a tibble
+  rename(Slope = afternoon) %>%
+  mutate(cafe = 1:nrow(.))
+
+un_pooled_params <-
+  d %>%
+  # with these two lines, we compute the mean value for each cafe's wait time 
+  # in the morning and then the afternoon
+  group_by(afternoon, cafe) %>%
+  summarise(mean = mean(wait)) %>%
+  ungroup() %>%  # ungrouping allows us to alter afternoon, one of the grouping variables
+  mutate(afternoon = ifelse(afternoon == 0, "Intercept", "Slope")) %>%
+  spread(key = afternoon, value = mean) %>%  # use `spread()` just as in the previous block
+  mutate(Slope = Slope - Intercept)          # finally, here's our slope!
+
+# here we combine the partially-pooled and unpooled means into a single data object, 
+# which will make plotting easier.
+params <-
+  # `bind_rows()` will stack the second tibble below the first
+  bind_rows(partially_pooled_params, un_pooled_params) %>%
+  # index whether the estimates are pooled
+  mutate(pooled = rep(c("partially", "not"), each = nrow(.)/2)) 
+
+# here's a glimpse at what we've been working for
+params %>%
+  slice(c(1:5, 36:40))
+
+ggplot(data = params, aes(x = Intercept, y = Slope)) +
+  stat_ellipse(geom = "polygon", type = "norm", level = 1/10, size = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 2/10, size = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 3/10, size = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 4/10, size = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 5/10, size = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 6/10, size = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 7/10, size = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 8/10, size = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 9/10, size = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = .99,  size = 0, alpha = 1/20, fill = "#E7CDC2") +
+  geom_point(aes(group = cafe, color = pooled)) +
+  geom_line(aes(group = cafe), size = 1/4, color = "lightgrey") +
+  scale_color_manual("Pooled?",
+                     values = c("#80A0C7", "#A65141")) +
+  coord_cartesian(xlim = range(params$Intercept),
+                  ylim = range(params$Slope)) + theme_black()
+
+```
+
+
+A figure for morning wait time and afternoon wait time 
+
+```{r}
+# retrieve the partially-pooled estimates with `coef()`
+partially_pooled_estimates <-
+  coef(b3.1)$cafe[ , 1, 1:2] %>%
+  # convert the two vectors to a tibble
+  as_tibble() %>%
+  # the Intercept is the wait time for morning (i.e., `afternoon == 0`)
+  rename(morning = Intercept) %>%
+  # `afternoon` wait time is the `morning` wait time plus the afternoon slope
+  mutate(afternoon = morning + afternoon,
+         cafe      = 1:n())
+
+# compute unpooled estimates directly from data
+un_pooled_estimates <-
+  d %>%
+  # as above, with these two lines, we compute each cafe's mean wait value by time of day
+  group_by(afternoon, cafe) %>% 
+  summarise(mean = mean(wait)) %>%
+  # ungrouping allows us to alter the grouping variable, afternoon
+  ungroup() %>% 
+  mutate(afternoon = ifelse(afternoon == 0, "morning", "afternoon")) %>%
+  # this seperates out the values into morning and afternoon columns
+  spread(key = afternoon, value = mean)
+
+estimates <-
+  bind_rows(partially_pooled_estimates, un_pooled_estimates) %>%
+  mutate(pooled = rep(c("partially", "not"), each = n() / 2))
+
+#plot
+
+ggplot(data = estimates, aes(x = morning, y = afternoon)) +
+  # nesting `stat_ellipse()` within `mapply()` is a less redundant way to produce the 
+  # ten-layered semitransparent ellipses we did with ten lines of `stat_ellipse()` 
+  # functions in the previous plot
+  mapply(function(level) {
+    stat_ellipse(geom  = "polygon", type = "norm",
+                 size  = 0, alpha = 1/20, fill = "#E7CDC2",
+                 level = level)
+    }, 
+    # Enter the levels here
+    level = c(seq(from = 1/10, to = 9/10, by = 1/10), .99)) +
+  geom_point(aes(group = cafe, color = pooled)) +
+  geom_line(aes(group = cafe), size = 1/4, color = "lightgrey") +
+  scale_color_manual("Pooled?",
+                     values = c("#80A0C7", "#A65141")) +
+  coord_cartesian(xlim = range(estimates$morning),
+                  ylim = range(estimates$afternoon)) +
+  labs(x = "morning wait (mins)",
+       y = "afternoon wait (mins)") + theme_black()
+
+
+```
+
+##13.4 UCB Admissions data 
+We will model this UCB admissions data with a varying intercepts model
+
+```{r}
+ucb <- read.csv("~/Documents/R/STAT610/UCBadmit2.csv")
+colnames(ucb)[1] <- "deptartment"
+ucb <- ucb %>%
+  mutate(male = ifelse(Gender == "Male", 1, 0), 
+         dept_id = rep(1:6, each = 2))
+head(ucb)
+```
+
+$$
+\begin{aligned}
+\text{admit}_i &\sim \text{Binomial}(n_i, p_i)\\
+\text{logit}(p_i) &= \alpha_{\text{dept_id}_i} + \beta\text{male}_i\\
+\alpha_{\text{dept_id}} &\sim \text{Normal}(\alpha, \sigma)\\
+\alpha &\sim \text{Normal}(0, 10)\\
+\beta &\sim \text{Normal}(0, 1)\\
+\sigma &\sim \text{HalfCauchy}(0,2)\\
+\end{aligned}
+$$
+There is only one random effect here, department id. 
+
+```{r, message=F, error=F, warning=F}
+
+b4.1 <- brm(data = ucb, family = binomial,
+            Admit |trials(Applications) ~ 1 + male + (1 |dept_id), 
+            prior = c(prior(normal(0, 10), class = Intercept), 
+                      prior(normal(0, 1), class = b), 
+                      prior(cauchy(0, 2), class = sd)),
+            iter = 4500, warmup = 500, chains = 3, 
+            cores = parallel::detectCores(), 
+            seed = 13, control = list(adapt_delta = 0.99))
+b4.1$fit
+```
+
+Remember that $\alpha_{\text{dept}_i}$ estimates are the deviations from the global mean $\alpha$, which in this case has the posterior mean for 1.23, this has the highest average admission rate. Department F has the lowest average admission rate. Further, the average of the posterior means for intercept random effects is the global mean. 
+
+```{r}
+#get a summary of coefficients 
+
+rbind(coef(b4.1)$dept_id[, , "Intercept"], 
+      fixef(b4.1), 
+      VarCorr(b4.1)$dept_id$sd) %>%
+  as_tibble() %>%
+  mutate(parameter = c(paste("Intercept [", 1:6,"]", sep = ""),
+                       "Intercept", "male", "sigma"))%>%
+  mutate_if(is_double, round, digits = 2)
+  
+
+```
+
+```{r}
+#another way to get summaries
+
+tidy(b4.1) %>%
+  mutate_if(is.numeric, round, digits = 2)
+
+```
+
+Introducing another random effect- a random effect for gender 
+
+$$
+\begin{aligned}
+\text{admit}_i &\sim \text{Binomial}(n_i, p_i)\\
+\text{logit}(p_i) &= \alpha_{\text{dept_id}_i}+ \beta_{\text{dept_id}_i}\text{male}_i\\
+\begin{bmatrix}\alpha_{\text{dept_id}}\\ \beta_{\text{dept_id}}\end{bmatrix} &\sim \text{MVNormal} 
+ \bigg 
+ (\begin{bmatrix} \alpha \\ \beta \end{bmatrix}, \mathbf{S} \bigg ) \\
+ \mathbf{S} &= \begin{pmatrix} \sigma_\alpha & 0\\ 0 & \sigma_\beta \end{pmatrix} \mathbf{R} \begin{pmatrix} \sigma_\alpha & 0 \\ 0 & \sigma_\beta \end{pmatrix}\\
+ \alpha &\sim \text{Normal}(0, 10)\\
+ \beta &\sim \text{Normal}(0, 1)\\
+ (\sigma_\alpha, \sigma_\beta) &\sim \text{HalfCauchy}(0,2)\\
+ \mathbf{R} &\sim \text{LKJcorr}(2)\\
+\end{aligned}
+$$
+
+```{r, message=F, error=F, warning= F}
+
+b4.2 <- brm(data = ucb, family = binomial, 
+            Admit|trials(Applications) ~ 1 + male + (1 + male |dept_id), 
+            prior = c(prior(normal(0, 10), class = Intercept),
+            prior(normal(0, 1), class = b), 
+            prior(cauchy(0, 2), class = sd), 
+            prior(lkj(2), class = cor)),
+            iter = 5000, warmup = 1000, chains = 4, cores = parallel::detectCores(),
+            seed = 13, control = list(adapt_delta = .99, 
+                                      max_treedepth = 12))
+            
+post <- posterior_samples(b4.2, add_chain = T)
+
+#trace plots
+post %>%
+  gather(key, value, -chain, -iter) %>%
+  mutate(chain = as.character(chain)) %>%
+  ggplot(aes(x = iter, y = value, group = chain, color = chain)) +
+  geom_line(size = 1/15) +
+  scale_x_continuous(NULL, breaks= c(1001, 5000)) + 
+  ylab(NULL) +
+  theme(legend.position = c(.825, .06), 
+        legend.direction = "horizontal") +
+  facet_wrap(~key, ncol = 3, scales = "free_y")
+```
+
+```{r}
+# some data wrangling to make coefficient plots
+
+rbind(coef(b4.2)$dept_id[, , 1], 
+      coef(b4.2)$dept_id[, , 2]) %>%
+  as_tibble() %>%
+  mutate(param = c(paste("Intercept", 1:6), paste("male", 1:6)), reorder = c(6:1, 12:7)) %>%
+  ggplot(aes(x = reorder(param, reorder))) +
+  geom_hline(yintercept = 0, linetype = 1, color = "#8B9DAF") +
+  geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5, y = Estimate, color = reorder < 7), shape = 20, size = 3/4) +
+  scale_color_manual(values = c("#394165", "#A65141")) +
+  xlab(NULL) +
+  coord_flip() +
+  theme(legend.position = "none",
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_text(hjust = 0))
+```
+
+
+```{r}
+
+partially_pooled_params <- 
+  coef(b4.2)$dept_id[, 1,] %>%
+  as_tibble() %>%
+  set_names("intercept", "slope") %>%
+  mutate(dept = 1:n()) 
+
+# in order to calculate the unpooled estimates from the data, we'll need a function that 
+# can convert probabilities into the logit metric. if you do the algebra, this is just
+# a transformation of the `inv_logit_scaled()` function.
+
+prob_to_logit <- function(x){
+  -log((1/x) - 1)
+}
+
+#compute unpooled estimates directly from the data 
+un_pooled_params <- 
+  ucb %>%
+  group_by(male, dept_id) %>%
+  summarise(prob_admit = mean(Admit/Applications)) %>%
+  ungroup() %>%
+  mutate(male = ifelse(male == 0, "intercept", "slope")) %>%
+  spread(key = male, value = prob_admit) %>%
+  rename(dept = dept_id) %>%
+  mutate(intercept = prob_to_logit(intercept),
+         slope = prob_to_logit(slope)) %>%
+  mutate(slope = slope - intercept)
+  
+#here combine unpooled and partially-pooled means into a single df
+
+params <- bind_rows(partially_pooled_params, un_pooled_params)%>%
+  mutate(pooled = rep(c("partially", "not"), each = n()/2)) %>%
+  mutate(dept_letter = rep(LETTERS[1:6], times = 2))
+```
+
+
+Depicting two-dimensional shrinkage for the paritally pooled multilevel estimates (posterior means) relative to the unpooled coefficients, calculated from the data. 
+
+```{r}
+
+ggplot(data = params, aes(x = intercept, y = slope)) + 
+  mapply(function(level){
+    stat_ellipse(geom = "polygon", type = "norm", 
+                 size = 0, alpha = 1/20, fill = "#E7CDC2",
+                 level = level)
+  },
+  level = c(seq(from = 1/10, to = 9/10, by = 1/10), .99)) +
+  geom_point(aes(group = dept, color = pooled)) +
+  geom_line(aes(group = dept), size = 1/4) +
+  scale_color_manual("Pooled?", 
+                     values = c("#80A0C7", "#A65141")) +
+  geom_text_repel(data = params %>% filter(pooled == "partially"), aes(label = dept_letter),
+                  color = "#E8DCCF", size = 4, family = "Courier", seed = 13.6) +
+  coord_cartesian(xlim = range(params$intercept), 
+                  ylim = range(params$slope)) + 
+  labs(x = expression(paste("intercept (", alpha[dept_id], ")")), y = expression(paste("slope (", beta[dept_id], ")"))) + theme_black()
+
+#for some reason, this does not look the way it's supposed to. not sure why. probably something weird in the data wrangling. 
+```
+
+Model comparison using waic 
+
+```{r}
+b4.1 <- add_criterion(b4.1, "waic")
+b4.2 <- add_criterion(b4.2, "waic")
+
+loo_compare(b4.1, b4.2, criterion = "waic") %>%
+  print(simplify = F)
+```
+
+Looking at WAIC weights 
+
+```{r}
+
+model_weights(b4.1, b4.2, weights = "waic") %>%
+  round(digits = 3)
+
+#higher is better - something in the models is not right!
+```
+
+
+##13.5 Chimpanzee Part-II
+
+```{r}
+chimp <- readRDS("~/Documents/R/STAT610/STA610_Labs/Oct30/chimpanzees.Rds")
+
+chimp <- 
+  chimp %>%
+  mutate(block_id = block)
+```
+
+Extending to a varying intercept - slope model
+
+$$
+\begin{aligned}
+\text{pulled_left}_i &\sim \text{Binomial}(n = 1, p_i)\\
+\text{logit}(p_i) &= \alpha_i + (\beta_{1,i} + \beta_{2,i}\text{condition}_i)\text{prosoc_left}_i\\
+\alpha_i &= \alpha + \alpha_{\text{actor}_i} + \alpha_{\text{block_id}_i}\\
+\beta_{1,i} &= \beta_1 + \beta_{1, \text{actor}_i} + \beta_{1,\text{block_id}_i}\\
+\beta_{2,i} &= \beta_2 + \beta_{2, \text{actor}_i} + \beta_{2,\text{block_id}_i}\\ 
+\begin{bmatrix}\alpha_{text{actor}}\\ \beta_{1,\text{actor}} \\ \beta_{2, \text{actor}}\end{bmatrix} &\sim \text{MVNormal} 
+\bigg( \begin{bmatrix}0 \\ 0 \\ 0 \end{bmatrix}, \mathbf{S}_{\text{actor}} \bigg)\\
+\begin{bmatrix}\alpha_{\text{block_id}}\\ \beta_{1, \text{block_id}}\\ \beta_{2, \text{block_id}} \end{bmatrix} &\sim \text{MVNormal} \bigg(\begin{bmatrix}0 \\0\\0\end{bmatrix}, \mathbf{S}_{\text{block_id}} \bigg) \\
+\mathbf{S}_{\text{actor}} &= \begin{pmatrix}\sigma_{\alpha_{\text{actor}}} & 0 & 0\\
+0 & \sigma_{\beta_{1\text{actor}}} & 0 \\
+0 & 0 & \sigma_{\beta_{2\text{actor}}}\end{pmatrix} \mathbf{R}_{\text{actor}} \begin{pmatrix}\sigma_{\alpha_{\text{actor}}} & 0 & 0\\
+0 & \sigma_{\beta_{1\text{actor}}} & 0 \\
+0 & 0 & \sigma_{\beta_{2\text{actor}}\end{pmatrix}\\
+\mathbf{S}_{\text{block_id}} &= \begin{pmatrix}\sigma_{\alpha_{\text{block_id}}} & 0 & 0\\
+0 & \sigma_{\beta_{1\text{block_id}}} & 0 \\
+0 & 0 & \sigma_{\beta_{2\text{block_id}}}\end{pmatrix}\mathbf{R}_{\text{block_id}}\begin{pmatrix}\sigma_{\alpha_{\text{block_id}}} & 0 & 0\\
+0 & \sigma_{\beta_{1\text{block_id}}} & 0 \\
+0 & 0 & \sigma_{\beta_{2\text{block_id}}}\end{pmatrix}\\
+\alpha &\sim \text{Normal}(0, 1)\\
+\beta_1 &\sim \text{Normal}(0, 1)\\
+\beta_2 &\sim \text{Normal}(0, 1)\\
+(\sigma_{\alpha_{\text{actor}}}, \sigma_{\beta_{1,\text{actor}}}, \sigma_{\beta_{2, \text{actor}}}) &\sim \text{HalfCauchy}(0, 2)\\
+(\sigma_{\alpha_{\text{block_id}}}, \sigma_{\beta_{1, \text{block_id}}}, \sigma_{\beta_{2, \text{block_id}}}) &\sim \text{HalfCauchy}(0,2)\\
+\mathbf{R}_{\text{actor}} &\sim \text{LKJCorr}(4)\\
+\mathbf{R}_{\text{block_id}} &\sim \text{LKJCorr}(4)\\
+\end{aligned}
+$$
+
+
+Code up model, 
+
+```{r, error=F, message=F, warning=F}
+b5.1 <- brm(data = chimp, family = binomial,
+            pulled_left |trials(1) ~ 1 + prosoc_left + condition:prosoc_left + (1 + prosoc_left + condition:prosoc_left | actor) + (1 + prosoc_left + condition:prosoc_left | block_id), 
+            prior = c(prior(normal(0, 1), class = Intercept),
+                      prior(normal(0, 1), class = b), 
+                      prior(cauchy(0, 2), class = sd), 
+                      prior(lkj(4), class = cor)), 
+            iter = 5000, warmup = 1000, chains = 4, 
+            cores = parallel::detectCores(), seed = 13)
+# plot(b5.1)
+```
+
+
+Examine n.eff ratios 
+
+```{r}
+require(bayesplot)
+ratios_cp <- neff_ratio(b5.1)
+mcmc_neff(ratios_cp, size = 2)  + theme_black() + theme(axis.text.y.left = element_blank())
+```
+
+
+#Appendix
+
+##1A. Stuff Shubhi Forgets - Correlation, Covariance, Variance
+
+Correlation (r) is a statistical tool used to assess the degree of association of two quantitative variables measured in each member of a group. 
+
+$$
+Cor(x, y) = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum(x_i - \bar{x})^2 \sum(y_i - \bar{y})^2}}
+$$
+
+or, 
+
+$$
+r = \frac{cov(x,y)}{\sigma_x \sigma_y}
+$$
+
+The square of the correlation coefficient is $R^2$, or the coefficient of determination. 
+Covariance is the variation of x and y together, 
+
+$$Cov(x, y) = E[(x_i - E[x])(y_i- E[y])]$$
+
+and finally, variance is the variaiton in x, 
+
+$$Var(x) = E[(x_i - E[x])^2]$$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
